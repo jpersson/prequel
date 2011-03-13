@@ -14,10 +14,13 @@ import org.apache.commons.pool.impl.GenericObjectPool
 
 private [prequel] object ConnectionPools {
     
-    val pools: MMap[ DatabaseConfig, PoolingDataSource ]= new HashMap
+    // Package Private due to testing
+    private val pools: MMap[ DatabaseConfig, PoolingDataSource ]= new HashMap
+    
+    def nbrOfPools = pools.size
     
     def getOrCreatePool( config: DatabaseConfig ): PoolingDataSource = {
-        pools.get( config ).getOrElse { synchronized {
+        pools.get( config ).getOrElse { 
             val connectionPool = new GenericObjectPool( null, config.poolConfig.toGenericObjectPoolConfig )
             val connectionFactory = new DriverManagerConnectionFactory(
                 config.jdbcURL, new java.util.Properties
@@ -30,17 +33,25 @@ private [prequel] object ConnectionPools {
                 connectionFactory, connectionPool, stmtPoolFactory, validationQuery, 
                 defaultReadonly, defaultAutoCommit, config.isolationLevel.id
             )
-
-            ( new PoolingDataSource( connectionPool ) )
-        } }
+            val dataSource: PoolingDataSource = new PoolingDataSource( connectionPool )
+            
+            pools.synchronized {
+                pools += (( config, dataSource ))
+            }
+            
+            dataSource
+        }
     }
+    
+    private[prequel] def reset(): Unit = pools.clear
 }
 
 private [prequel] object TransactionFactory {
     
     def newTransaction( config: DatabaseConfig ): Transaction = {
         Transaction(
-            ConnectionPools.getOrCreatePool( config ).getConnection()
+            ConnectionPools.getOrCreatePool( config ).getConnection(),
+            config.sqlFormatter
         )
     }
 }

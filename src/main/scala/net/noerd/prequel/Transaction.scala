@@ -16,8 +16,16 @@ import net.noerd.prequel.RichConnection.conn2RichConn
  * passed to InTransaction is succesfully executed the transaction is auto-
  * matically committed. And if some exception is throws during execution the 
  * transaction is rollbacked. 
+ * 
+ * Exceptions
+ * ----------
+ * SQLException: All methods executing queries will throw SQLException if the query was not 
+ * properly formatted.
+ *
+ * IllegalFormatException: Will be throw by all method if the format string is invalid or if
+ * there is not enough parameters.
  */
-class Transaction( val connection: Connection ) {
+class Transaction( val connection: Connection, private val formatter: SQLFormatter ) {
     
     /**
      * Returns all records returned by the query after being converted by the
@@ -27,7 +35,7 @@ class Transaction( val connection: Connection ) {
      * @param params are the optional parameters used in the query
      * @param block is a function converting the row to something else
      */
-    def select[ T ]( sql: String, params: Any* )( block: ( ResultSetRow ) => T ): Seq[ T ] = {
+    def select[ T ]( sql: String, params: Any* )( block: ResultSetRow => T ): Seq[ T ] = {
         _select( sql, params.toSeq )( block )
     }
     
@@ -39,7 +47,7 @@ class Transaction( val connection: Connection ) {
      * @param params are the optional parameters used in the query
      * @param block is a function converting the row to something else
      */
-    def selectHead[ T ]( sql: String, params: Any* )( block: ( ResultSetRow ) => T ): Option[ T ] = {
+    def selectHead[ T ]( sql: String, params: Any* )( block: ResultSetRow => T ): Option[ T ] = {
         _select( sql, params.toSeq )( block ).headOption
     }
     
@@ -49,6 +57,8 @@ class Transaction( val connection: Connection ) {
      *
      * @param sql query that must return at least one record with a long
      * @param params are the optional parameters used in the query
+     * @throws SQLException if returned value is not a Long
+     * @throws NoSuchElementException if no record was returned
      */
     def selectLong( sql: String, params: Any* ): Long = {
         _select( sql, params.toSeq )( _.nextLong ).head
@@ -62,7 +72,7 @@ class Transaction( val connection: Connection ) {
      */
     def execute( sql: String, params: Any* ): Int = {
         connection.withStatement { statement =>
-            statement.executeUpdate( SQL( sql, params.toSeq ) )
+            statement.executeUpdate( formatter.format( sql, params.toSeq ) )
         }
     }
     
@@ -84,10 +94,9 @@ class Transaction( val connection: Connection ) {
     ( block: ( ResultSetRow ) => T ): Seq[ T ] = {
         connection.withStatement { statement =>
             val results: ArrayBuffer[ T ] = new ArrayBuffer
-            val rs = statement.executeQuery( SQL( sql, params ) )
+            val rs = statement.executeQuery( formatter.format( sql, params ) )
             
-            while( rs.next ) {
-                
+            while( rs.next ) {    
                 results.append( block( ResultSetRow( rs ) ) )
             }
             results
@@ -97,5 +106,5 @@ class Transaction( val connection: Connection ) {
 
 object Transaction {
     
-    def apply( conn: Connection ) = new Transaction( conn )
+    def apply( conn: Connection, formatter: SQLFormatter ) = new Transaction( conn, formatter )
 }

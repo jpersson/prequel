@@ -5,6 +5,7 @@ import java.util.Date
 import org.apache.commons.lang.StringEscapeUtils.escapeSql
 
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
 /**
@@ -31,18 +32,16 @@ case class Identifier( wrapped: String )
  * SQL specific classes like Nullable, NullComparable and Identifier. 
  * See their documentation for more info on how to use them.
  */
-private[ prequel ] object SQL {
-
-    // Using ISODateTimeFormat from joda which is thread safe
-    private val sqlTimestampFormat = ISODateTimeFormat.dateTimeNoMillis
-
+private[ prequel ] class SQLFormatter(
+    val timeStampFormatter: DateTimeFormatter
+) {
     private val sqlQuote = "'"
     
-    def apply( sql: String, params: Seq[ Any ] ): String = {
-        sql.format( params.map( escapeSQL ):_* )
+    def format( sql: String, params: Seq[ Any ] ): String = {
+        sql.format( params.map( escapeParam ): _* )
     }
                 
-    private def escapeSQLString( str: String ) = {
+    private def escapeString( str: String ) = {
         val sb = new StringBuilder
         
         sb.append( sqlQuote ).append(
@@ -52,24 +51,34 @@ private[ prequel ] object SQL {
         sb.toString
     }
     
-    private def escapeSQLDateTime(date: DateTime):Any =
-        escapeSQLString( sqlTimestampFormat.print( date ) )
+    private def escapeDateTime(date: DateTime):Any = {
+        escapeString( timeStampFormatter.print( date ) )
+    }
         
-    private def escapeSQL( param: Any ): Any = param match {
-        case str: String => escapeSQLString( str )
-        case dateTime: DateTime => escapeSQLDateTime( dateTime )
-        case date: Date => escapeSQLDateTime( new DateTime( date.getTime ) )
+    private def escapeParam( param: Any ): Any = param match {
+        case str: String => escapeString( str )
+        case dateTime: DateTime => escapeDateTime( dateTime )
+        case date: Date => escapeDateTime( new DateTime( date.getTime ) )
         case int: Int => int.toString
         case long: Long => long.toString
         case double: Double => "%f".format( double )
         case float: Float => "%f".format( float )
         case Identifier( wrapped ) => wrapped
         case NullComparable( wrapped ) => {
-            wrapped.map( "=" + escapeSQL( _ ) ).getOrElse( "is null" )
+            wrapped.map( "=" + escapeParam( _ ) ).getOrElse( "is null" )
         }
         case Nullable( wrapped ) => {
-            wrapped.map( escapeSQL( _ ) ).getOrElse( "null" )
+            wrapped.map( escapeParam( _ ) ).getOrElse( "null" )
         }
-        case _ => param
+        case _ => param.toString
     }   
+}
+
+private[ prequel ] object SQLFormatter {
+    
+    val DefaultSQLFormatter = SQLFormatter()
+    
+    def apply( timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis ) = {
+        new SQLFormatter( timeStampFormatter )
+    }
 }

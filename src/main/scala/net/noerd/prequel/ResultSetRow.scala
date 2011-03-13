@@ -5,96 +5,108 @@ import java.util.Date
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 
-import scala.collection.mutable.{ Set => MSet }
+import scala.collection.mutable.ArrayBuffer
 
 import org.joda.time.DateTime
 
+/**
+ * Provides access the the current row in the ResultSet. By calling any
+ * of the next* methods it possible to step through the columns of the row.
+ */
 class ResultSetRow( private val rs: ResultSet ) {
       
     /** Maintain the current position. */
-    private var position = 1
+    private var position = 0
       
-    private def incrementPosition { position = position + 1 }
+    private def incrementPosition = { position = position + 1 }
       
     /** 
      * Reset the column position. The index starts with 1.
+     * @return self
      */
-    def apply( index: Int ): ResultSetRow = {
+    def setColumnIndex( index: Int ): ResultSetRow = {
         position = index
         this
     }
   
     def nextBoolean: Boolean = {
-        val bool = rs.getBoolean( position )
         incrementPosition
-        return bool
+        rs.getBoolean( position )
     }
 
     def nextByte: Byte = {
-        val byte = rs.getByte( position )
-        incrementPosition
-        return byte
+        incrementPosition        
+        rs.getByte( position )
     }
 
     def nextInt: Int = {
-        val int = rs.getInt( position )
-        incrementPosition
-        return int
+        incrementPosition        
+        rs.getInt( position )
     }
       
     def nextLong: Long = {
-        val long = rs.getLong( position )
         incrementPosition
-        return long
+        rs.getLong( position )
     }
           
     def nextFloat: Float = {
-        val float = rs.getFloat( position )
-        incrementPosition
-        return float
+        incrementPosition        
+        rs.getFloat( position )
     }
 
     def nextDouble: Double = {
-        val double = rs.getDouble( position )
-        incrementPosition
-        return double
+        incrementPosition        
+        rs.getDouble( position )
     }
 
     def nextString: String = {
-        val string = rs.getString( position )
         incrementPosition
-        return string
+        rs.getString( position )
     }
 
     def nextDate: Date = {
-        val timestamp = rs.getTimestamp( position )
-        incrementPosition
-        return timestamp
+        incrementPosition        
+        rs.getTimestamp( position )
     }
       
     def nextDateTime: DateTime = {
-        val timestamp = rs.getTimestamp( position )
         incrementPosition
+        getDateTime( position )
+    }        
+
+    def nextObject: AnyRef = {
+        incrementPosition
+        rs.getObject( position )
+    }
+    
+    def getBoolean( column: String ): Boolean = rs.getBoolean( column )
+    def getByte( column: String ): Byte = rs.getByte( column )
+    def getFloat( column: String ): Float = rs.getFloat( column )
+    def getDouble( column: String ): Double = rs.getDouble( column )
+    def getString( column: String ): String = rs.getString( column )
+    def getLong( column: String ): Long = rs.getLong( column )
+    def getInt( column: String ): Int = rs.getInt( column )
+    def getDate( column: String ): Date = rs.getTimestamp( column )
+    def getDateTime( column: String ): DateTime = {
+        getDateTime( rs.findColumn( column ) )
+    }
+        
+    def columnNames: Seq[ String ]= {          
+        val columnNames = ArrayBuffer.empty[ String ]
+        val metaData = rs.getMetaData
+        for(index <- 0.until( metaData.getColumnCount ) ) {
+            columnNames += metaData.getColumnName( index + 1 ).toLowerCase
+        }
+        columnNames
+    }
+    
+    private def getDateTime( index: Int ): DateTime = {
+        val timestamp = rs.getTimestamp( index )
         if( timestamp != null )
             return new DateTime( timestamp.getTime )
         else 
             return null
-    }        
-
-    def nextObject: AnyRef = {
-        val obj = rs.getObject( position )
-        incrementPosition
-        return obj
     }
-
-    def columns = {          
-        val columnNames = MSet.empty[ String ]
-        val metaData = rs.getMetaData
-        for(index <- 0.until( metaData.getColumnCount ) ) {
-            columnNames + metaData.getColumnName( index + 1 )
-        }
-        columnNames
-    }        
 }
 
 object ResultSetRow {

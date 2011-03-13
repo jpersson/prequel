@@ -45,6 +45,7 @@ final case class DatabaseConfig(
     val username: String = "", 
     val password: String = "",
     val isolationLevel: TransactionIsolation = IsolationLevels.ReadCommitted,
+    val sqlFormatter: SQLFormatter = SQLFormatter.DefaultSQLFormatter,
     val poolConfig: PoolConfig = new PoolConfig
 ) {
     
