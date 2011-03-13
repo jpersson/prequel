@@ -3,10 +3,17 @@ Prequel - SQL in Scala
 
 Prequel is a small set of classes making handling of SQL queries in Scala a bit easier. It takes care of connection handling/pooling, sql escaping, parameter conversion and to some extent transaction handling.
 
-Prequel was written by me, [Johan Persson](https://github.com/jpersson) since I was not really happy with what I could find in terms of jdbc based database libraries. The library is heavily influenced by projects like [Querulous](https://github.com/nkallen/querulous), [Simplifying JDBC](http://scala.sygneca.com/code/simplifying-jdbc) and unreleased work of [Tristan Juricek](https://github.com/tristanjuricek).
+Prequel was written by me, [Johan Persson](https://github.com/jpersson) since I was not really happy with what I could find in terms of jdbc based database libraries. The library is heavily inspired by projects like [Querulous](https://github.com/nkallen/querulous), [Simplifying JDBC](http://scala.sygneca.com/code/simplifying-jdbc) and unreleased work of [Tristan Juricek](https://github.com/tristanjuricek).
 
+## Database Compatibility
 
-# Not supported
+Prequel should be compatible with most JDBC supported databases. I've only tested it using HSQLDB and PostgreSQL but MySQL and others should work fine. 
+
+## Use at your own risk
+
+Although I'm using this library in my own projects I have not tested it with massive amounts of data so use at your own risk :-)
+
+## Not supported
 
  * Logging (will be implemented later on)
  * Any config files for database configuration
@@ -36,7 +43,7 @@ Examples
         
         def selectFoo() = {
             InTransaction { tx => 
-                tx.select( "select bar from" ) { row =>
+                tx.select( "select bar from foo" ) { row =>
                     Foo( row )
                 }
             }
@@ -46,6 +53,12 @@ Examples
 Dependencies
 ------------
 
+## Scala
+
+I'm developing against Scala 2.8.1 but there are not that many 2.8 features used so it should be rather easy to port to 2.7.7 if you still haven't made the leap. 
+
+## 3rd Party libs
+
 I've tried to keep the list of dependencies as short as possible but currently the following
 libraries are being used.
 
@@ -54,7 +67,7 @@ libraries are being used.
 * [commons-lang 2.6](http://commons.apache.org/lang) for SQL escaping
 * [joda-time 1.6.2](http://joda-time.sourceforge.net/) for sane support of Date and Time
 
-# Testing
+## Testing
 
 For testing I use [scala-test](http://www.scalatest.org) for unit-tests and [hsqldb](http://hsqldb.org) for in process db interaction during tests.
 
