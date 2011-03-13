@@ -10,7 +10,6 @@ class PrequelProject(info: ProjectInfo) extends DefaultProject( info ) {
     // Testing Dependencies
     val hsqldb = "org.hsqldb" % "hsqldb" % "2.0.0" % "test"
     val scalaTest = "org.scalatest" % "scalatest" % "1.3" % "test"
-    val scalaTime = "org.scala-tools.time" % "time_2.8.1" % "0.3" % "test"
     
     val scalaToolsReleases = "Scala-Tools Releases" at "http://scala-tools.org/repo-releases"
 }
