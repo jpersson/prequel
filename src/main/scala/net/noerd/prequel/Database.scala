@@ -14,7 +14,6 @@ import org.apache.commons.pool.impl.GenericObjectPool
 
 private [prequel] object ConnectionPools {
     
-    // Package Private due to testing
     private val pools: MMap[ DatabaseConfig, PoolingDataSource ]= new HashMap
     
     def nbrOfPools = pools.size
