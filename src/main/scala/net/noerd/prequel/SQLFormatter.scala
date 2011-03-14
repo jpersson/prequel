@@ -5,6 +5,7 @@ import java.util.Date
 import org.apache.commons.lang.StringEscapeUtils.escapeSql
 
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
@@ -76,7 +77,16 @@ private[ prequel ] class SQLFormatter(
 
 private[ prequel ] object SQLFormatter {
     
+    /**
+     * SQLFormatter for dbs supporting ISODateTimeFormat
+     */
     val DefaultSQLFormatter = SQLFormatter()
+    /**
+     * SQLFormatter for usage with HSQLDB. 
+     */
+    val HSQLDBSQLFormatter = SQLFormatter(
+        DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss.SSSS" )
+    )
     
     def apply( timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis ) = {
         new SQLFormatter( timeStampFormatter )

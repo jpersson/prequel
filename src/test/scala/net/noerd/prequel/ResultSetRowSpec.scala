@@ -12,15 +12,11 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 
 class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
-    
-    // Since we're using HSQLDB for tests we need to use a date format it knows
-    val hsqldbFormatter = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss.SSSS" )
-    val sqlFormatter = SQLFormatter( hsqldbFormatter )
-    
+        
     implicit val databaseConfig = DatabaseConfig(
         driver = "org.hsqldb.jdbc.JDBCDriver",
         jdbcURL = "jdbc:hsqldb:mem:mymemdb",
-        sqlFormatter = sqlFormatter
+        sqlFormatter = SQLFormatter.HSQLDBSQLFormatter
     )
     
     describe( "ResultSetRow" ) {

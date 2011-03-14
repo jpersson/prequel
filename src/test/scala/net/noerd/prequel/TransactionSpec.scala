@@ -115,6 +115,5 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 }
             }
         }
-
     }
 }

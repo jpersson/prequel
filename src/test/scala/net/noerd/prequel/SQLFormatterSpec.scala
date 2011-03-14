@@ -6,29 +6,28 @@ import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 
 class SQLFormatterSpec extends Spec with ShouldMatchers {
     
-    val hsqldbFormatter = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" )
-    val sqlFormatter = SQLFormatter( hsqldbFormatter )
-    
-    def format( sql: String, params: Any* ) = sqlFormatter.format( sql, params.toSeq )
+    val timeStampFormatter = SQLFormatter.HSQLDBSQLFormatter.timeStampFormatter
 
-    describe( "SQL" ) {
+    def format( sql: String, params: Any* ) = {
+        SQLFormatter.HSQLDBSQLFormatter.format( sql, params.toSeq )
+    }
+
+    describe( "SQLFormatter" ) {
         
         it( "should format DateTime params") {
-            val dateTime: DateTime = hsqldbFormatter.parseDateTime( "2010-03-13 13:00:00" )
-            val expected = "insert into foo values('2010-03-13 13:00:00')"
+            val dateTime: DateTime = timeStampFormatter.parseDateTime( "2010-03-13 13:00:00.0000" )
+            val expected = "insert into foo values('2010-03-13 13:00:00.0000')"
             val actual = format( "insert into foo values(%s)", dateTime )
             
             actual should equal (expected)
         }
         
         it( "should format Date params") {
-            val date: Date = hsqldbFormatter.parseDateTime( "2010-03-13 13:00:00" ).toDate
-            val expected = "insert into foo values('2010-03-13 13:00:00')"
+            val date: Date = timeStampFormatter.parseDateTime( "2010-03-13 13:00:00.0000" ).toDate
+            val expected = "insert into foo values('2010-03-13 13:00:00.0000')"
             val actual = format( "insert into foo values(%s)", date )
             
             actual should equal (expected)
