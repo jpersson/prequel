@@ -5,7 +5,7 @@ import java.sql.Statement
 
 private[prequel] class RichConnection( val wrapped: Connection ) {
     
-    def withStatement[ T ]( block: (Statement) => T ): T = {
+    def usingStatement[ T ]( block: (Statement) => T ): T = {
         val statement = wrapped.createStatement
         
         try {

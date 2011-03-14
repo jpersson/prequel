@@ -21,7 +21,9 @@ class ResultSetRow( private val rs: ResultSet ) {
     private def incrementPosition = { position = position + 1 }
       
     /** 
-     * Reset the column position. The index starts with 1.
+     * Reset the column position. Setting it to 0 will cause
+     * the next call of a next* method to return the first column
+     *
      * @return self
      */
     def setColumnIndex( index: Int ): ResultSetRow = {
@@ -114,6 +116,25 @@ object ResultSetRow {
     def apply( rs: ResultSet ): ResultSetRow = {
         new ResultSetRow( rs )
     }
+}
+/**
+ * Defines a number of implicit calls to the next* methods of the ResultSetRow.
+ * 
+ * Handles all types supported by the ResultSetRow as well as Options containing those.
+ *
+ * Example of implicit calls to the right next* method:
+ *
+ *     import net.noerd.prequel.ResultSetRowImplicits._
+ *
+ *     case class Person( id: Long, name: String, birthdate: DateTime )
+ *
+ *     InTransaction { tx =>
+ *         tx.select( "select id, name, birthdate from people" ) { r =>
+ *             Person( r, r, r )
+ *         }
+ *     }
+ */
+object ResultSetRowImplicits {
         
     implicit def row2Boolean( row: ResultSetRow ) = row.nextBoolean;
     implicit def row2Byte( row: ResultSetRow ) = row.nextByte;
