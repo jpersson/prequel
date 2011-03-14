@@ -5,6 +5,8 @@ Prequel is a small set of classes making handling of SQL queries in Scala a bit 
 
 Prequel was written by me, [Johan Persson](https://github.com/jpersson) since I was not really happy with what I could find in terms of jdbc based database libraries. The library is heavily inspired by projects like [Querulous](https://github.com/nkallen/querulous), [Simplifying JDBC](http://scala.sygneca.com/code/simplifying-jdbc) and unreleased work of [Tristan Juricek](https://github.com/tristanjuricek).
 
+See example below how prequel can make your life easier.
+
 ## Database Compatibility
 
 Prequel should be compatible with most JDBC supported databases. I've only tested it using HSQLDB and PostgreSQL but MySQL and others should work fine. 
@@ -19,15 +21,16 @@ Although I'm using this library in my own projects I have not tested it with mas
  * Any config files for database configuration
  * Any type of ORM voodoo (and will never be)
 
-Examples
+Example
 -------
 
     import net.noerd.prequel.InTransaction
     import net.noerd.prequel.DatabaseConfig
-    import net.noerd.prequel.ResultSetRow.row2String
-    import net.noerd.prequel.ResultSetRow.row2Int
+    import net.noerd.prequel.ResultSetRowImplicits._
+    
+    case class Bicycle( id: Long, brand: String, releaseDate: DateTime)
 
-    class PrequelTest {
+    object PrequelTest {
         // The database config should be created only once
         // since it's used during connection pooling
         implicit val databaseConfig = DatabaseConfig( 
@@ -35,16 +38,19 @@ Examples
             jdbcURL = "jdbc:hsqldb:mem:mymemdb"
         )
        
-        def insertFoo( foo: String ) = {
+        def insertBicycle( bike: Bicycle ): Unit = {
             InTransaction { tx => 
-                tx.execute( "insert into foo(%s)", foo )
+                tx.execute( 
+                    "insert into bicycles( id, brand, release_date ) values( %s, %s, %s )", 
+                    bike.id, bike.brand, bike.releaseDate
+                )
             }
         }
         
-        def selectFoo() = {
+        def fetchBicycles(): Seq[ Bicycles ] = {
             InTransaction { tx => 
-                tx.select( "select bar from foo" ) { row =>
-                    Foo( row )
+                tx.select( "select id, brand, release_date from bicycles" ) { r =>
+                    Bicycle( r, r, r )
                 }
             }
         }
