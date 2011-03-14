@@ -17,27 +17,45 @@ import net.noerd.prequel.RichConnection.conn2RichConn
  * matically committed. And if some exception is throws during execution the 
  * transaction is rollbacked. 
  * 
- * Exceptions
  * ----------
- * SQLException: All methods executing queries will throw SQLException if the query was not 
- * properly formatted.
+ * @throws SQLException all methods executing queries will throw SQLException 
+ *         if the query was not properly formatted or something went wrong in 
+ *         the database during execution.
  *
- * IllegalFormatException: Will be throw by all method if the format string is invalid or if
- * there is not enough parameters.
+ * @throws IllegalFormatException: Will be throw by all method if the format 
+ *         string is invalid or if there is not enough parameters.
  */
 class Transaction( val connection: Connection, private val formatter: SQLFormatter ) {
     
     /**
      * Returns all records returned by the query after being converted by the
-     * given block. 
+     * given block. All objects are kept in memory to this method is no suited
+     * for very big result sets. Use selectAndProcess if you need to process 
+     * bigger datasets.
      * 
      * @param sql query that should return records
      * @param params are the optional parameters used in the query
      * @param block is a function converting the row to something else
      */
     def select[ T ]( sql: String, params: Any* )( block: ResultSetRow => T ): Seq[ T ] = {
-        _select( sql, params.toSeq )( block )
+        val results = new ArrayBuffer[ T ]
+        _selectIntoBuffer( Some( results ), sql, params.toSeq )( block )
+        results
     }
+
+    /**
+     * Executes the query and passes each row to the given block. This method
+     * does not keep the objects in memory and returns Unit so the row needs to
+     * be fully processed in the block.
+     * 
+     * @param sql query that should return records
+     * @param params are the optional parameters used in the query
+     * @param block is a function fully processing each row
+     */
+    def selectAndProcess( sql: String, params: Any* )( block: ResultSetRow => Unit ): Unit = {
+        _selectIntoBuffer( None, sql, params.toSeq )( block )
+    }
+
     
     /**
      * Returns the first record returned by the query after being converted by the
@@ -48,7 +66,7 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
      * @param block is a function converting the row to something else
      */
     def selectHead[ T ]( sql: String, params: Any* )( block: ResultSetRow => T ): Option[ T ] = {
-        _select( sql, params.toSeq )( block ).headOption
+        select( sql, params.toSeq: _* )( block ).headOption
     }
     
     /**
@@ -61,7 +79,7 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
      * @throws NoSuchElementException if no record was returned
      */
     def selectLong( sql: String, params: Any* ): Long = {
-        _select( sql, params.toSeq )( _.nextLong ).head
+        select( sql, params.toSeq: _* )( _.nextLong ).head
     }
     
     /**
@@ -71,7 +89,7 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
      * @param params are the optional parameters used in the query
      */
     def execute( sql: String, params: Any* ): Int = {
-        connection.withStatement { statement =>
+        connection.usingStatement { statement =>
             statement.executeUpdate( formatter.format( sql, params.toSeq ) )
         }
     }
@@ -90,16 +108,18 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
      */
     def commit(): Unit = connection.commit()
     
-    private def _select[ T ]( sql: String, params: Seq[ Any ] )
-    ( block: ( ResultSetRow ) => T ): Seq[ T ] = {
-        connection.withStatement { statement =>
-            val results: ArrayBuffer[ T ] = new ArrayBuffer
+    private def _selectIntoBuffer[ T ]( 
+        buffer: Option[ ArrayBuffer[T] ], 
+        sql: String, params: Seq[ Any ]
+    )( block: ( ResultSetRow ) => T ): Unit = {
+        connection.usingStatement { statement =>
             val rs = statement.executeQuery( formatter.format( sql, params ) )
+            val append = buffer.isDefined
             
             while( rs.next ) {    
-                results.append( block( ResultSetRow( rs ) ) )
+                val value = block( ResultSetRow( rs ) )
+                if( append ) buffer.get.append( value )
             }
-            results
         }
     }
 }
