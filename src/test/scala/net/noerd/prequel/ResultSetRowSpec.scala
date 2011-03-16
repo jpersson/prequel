@@ -8,16 +8,14 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
 
 import org.joda.time.DateTime
+import org.joda.time.Duration
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
+import net.noerd.prequel.ResultSetRowImplicits._
 
 class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         
-    implicit val databaseConfig = DatabaseConfig(
-        driver = "org.hsqldb.jdbc.JDBCDriver",
-        jdbcURL = "jdbc:hsqldb:mem:mymemdb",
-        sqlFormatter = SQLFormatter.HSQLDBSQLFormatter
-    )
+    implicit val databaseConfig = TestDatabase.config
     
     describe( "ResultSetRow" ) {
         
@@ -75,6 +73,15 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             tx.execute( "insert into datetime_table values(%s)", value )
             tx.select( "select c1 from datetime_table" ) { row =>
                 row.nextDateTime should equal (value)
+            }
+        } }
+
+        it( "should return a Duration" ) { InTransaction { tx =>
+            val value = Duration.standardDays( 43 )
+            tx.execute( "create table duration_table(c1 bigint)" )
+            tx.execute( "insert into duration_table values(%s)", value )
+            tx.select( "select c1 from duration_table" ) { row =>
+                row.nextDuration should equal (value)
             }
         } }
 

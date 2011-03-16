@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData
 import scala.collection.mutable.ArrayBuffer
 
 import org.joda.time.DateTime
+import org.joda.time.Duration
 
 /**
  * Provides access the the current row in the ResultSet. By calling any
@@ -76,6 +77,11 @@ class ResultSetRow( private val rs: ResultSet ) {
         getDateTime( position )
     }        
 
+    def nextDuration: Duration = {
+        incrementPosition
+        getDuration( position )
+    }
+
     def nextObject: AnyRef = {
         incrementPosition
         rs.getObject( position )
@@ -88,6 +94,7 @@ class ResultSetRow( private val rs: ResultSet ) {
     def getString( column: String ): String = rs.getString( column )
     def getLong( column: String ): Long = rs.getLong( column )
     def getInt( column: String ): Int = rs.getInt( column )
+    def getDuration( column: String ): Int = rs.getInt( column )
     def getDate( column: String ): Date = rs.getTimestamp( column )
     def getDateTime( column: String ): DateTime = {
         getDateTime( rs.findColumn( column ) )
@@ -106,6 +113,14 @@ class ResultSetRow( private val rs: ResultSet ) {
         val timestamp = rs.getTimestamp( index )
         if( timestamp != null )
             return new DateTime( timestamp.getTime )
+        else 
+            return null
+    }
+
+    private def getDuration( index: Int ): Duration = {
+        val duration = rs.getLong( index )
+        if( !rs.wasNull )
+            return new Duration( duration )
         else 
             return null
     }
@@ -145,6 +160,7 @@ object ResultSetRowImplicits {
     implicit def row2String( row: ResultSetRow ) = row.nextString;
     implicit def row2Date( row: ResultSetRow ) = row.nextDate;
     implicit def row2DateTime( row: ResultSetRow ) = row.nextDateTime
+    implicit def row2Duration( row: ResultSetRow ) = row.nextDuration    
     implicit def row2BooleanOption( row: ResultSetRow ): Option[ Boolean ] = row2Option( row )
     implicit def row2ByteOption( row: ResultSetRow ): Option[ Byte ] = row2Option( row )
     implicit def row2IntOption( row: ResultSetRow ): Option[ Int ] = row2Option( row )
@@ -158,6 +174,11 @@ object ResultSetRowImplicits {
     implicit def row2DateTimeOption( row: ResultSetRow ): Option[ DateTime ] = {
     
         val ref = row.nextDateTime
+        if ( ref == null ) None else Some( ref )
+    }
+    implicit def row2DurationOption( row: ResultSetRow ): Option[ Duration ] = {
+    
+        val ref = row.nextDuration
         if ( ref == null ) None else Some( ref )
     }
     

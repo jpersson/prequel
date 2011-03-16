@@ -5,6 +5,7 @@ import java.util.Date
 import org.apache.commons.lang.StringEscapeUtils.escapeSql
 
 import org.joda.time.DateTime
+import org.joda.time.Duration
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
@@ -33,12 +34,14 @@ case class Identifier( wrapped: String )
  * SQL specific classes like Nullable, NullComparable and Identifier. 
  * See their documentation for more info on how to use them.
  */
-private[ prequel ] class SQLFormatter(
+class SQLFormatter(
     val timeStampFormatter: DateTimeFormatter
 ) {
     private val sqlQuote = "'"
     
-    def format( sql: String, params: Seq[ Any ] ): String = {
+    def format( sql: String, params: Any* ): String = formatSeq( sql, params.toSeq )
+
+    def formatSeq( sql: String, params: Seq[ Any ] ): String = {
         sql.format( params.map( escapeParam ): _* )
     }
                 
@@ -59,6 +62,7 @@ private[ prequel ] class SQLFormatter(
     private def escapeParam( param: Any ): Any = param match {
         case str: String => escapeString( str )
         case dateTime: DateTime => escapeDateTime( dateTime )
+        case duration: Duration => duration.getMillis
         case date: Date => escapeDateTime( new DateTime( date.getTime ) )
         case int: Int => int.toString
         case long: Long => long.toString
@@ -75,8 +79,8 @@ private[ prequel ] class SQLFormatter(
     }   
 }
 
-private[ prequel ] object SQLFormatter {
-    
+object SQLFormatter {
+
     /**
      * SQLFormatter for dbs supporting ISODateTimeFormat
      */
@@ -87,8 +91,13 @@ private[ prequel ] object SQLFormatter {
     val HSQLDBSQLFormatter = SQLFormatter(
         DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss.SSSS" )
     )
-    
-    def apply( timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis ) = {
+        
+    private[ prequel ] def apply( 
+        timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis 
+    ) = {
         new SQLFormatter( timeStampFormatter )
     }
+}
+
+object SQLFormatters {
 }
