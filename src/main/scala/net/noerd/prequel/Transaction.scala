@@ -25,7 +25,7 @@ import net.noerd.prequel.RichConnection.conn2RichConn
  * @throws IllegalFormatException: Will be throw by all method if the format 
  *         string is invalid or if there is not enough parameters.
  */
-class Transaction( val connection: Connection, private val formatter: SQLFormatter ) {
+class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
     
     /**
      * Returns all records returned by the query after being converted by the
@@ -90,7 +90,7 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
      */
     def execute( sql: String, params: Any* ): Int = {
         connection.usingStatement { statement =>
-            statement.executeUpdate( formatter.format( sql, params.toSeq ) )
+            statement.executeUpdate( formatter.formatSeq( sql, params.toSeq ) )
         }
     }
     
@@ -113,7 +113,7 @@ class Transaction( val connection: Connection, private val formatter: SQLFormatt
         sql: String, params: Seq[ Any ]
     )( block: ( ResultSetRow ) => T ): Unit = {
         connection.usingStatement { statement =>
-            val rs = statement.executeQuery( formatter.format( sql, params ) )
+            val rs = statement.executeQuery( formatter.formatSeq( sql, params ) )
             val append = buffer.isDefined
             
             while( rs.next ) {    

@@ -12,7 +12,7 @@ class SQLFormatterSpec extends Spec with ShouldMatchers {
     val timeStampFormatter = SQLFormatter.HSQLDBSQLFormatter.timeStampFormatter
 
     def format( sql: String, params: Any* ) = {
-        SQLFormatter.HSQLDBSQLFormatter.format( sql, params.toSeq )
+        SQLFormatter.HSQLDBSQLFormatter.formatSeq( sql, params.toSeq )
     }
 
     describe( "SQLFormatter" ) {
