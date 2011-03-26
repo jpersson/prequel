@@ -27,6 +27,7 @@ Example
     import net.noerd.prequel.InTransaction
     import net.noerd.prequel.DatabaseConfig
     import net.noerd.prequel.ResultSetRowImplicits._
+    import net.noerd.prequel.SQLFormatterImplicits._    
     
     case class Bicycle( id: Long, brand: String, releaseDate: DateTime)
 
@@ -52,6 +53,12 @@ Example
                 tx.select( "select id, brand, release_date from bicycles" ) { r =>
                     Bicycle( r, r, r )
                 }
+            }
+        }
+        
+        def fetchBicycleCount: Long = {
+            InTransaction { tx => 
+                tx.selectLong( "select count(*) from bicycles")
             }
         }
     }

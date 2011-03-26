@@ -11,23 +11,6 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
 /**
- * Wrap your optional value in NullComparable to compare with null if None. 
- *
- * Note: The '=' operator is added during formatting so don't include it in your SQL
- */    
-case class NullComparable( wrapped: Option[ Any ] )
-
-/**
- * Wrap your optional value in Nullable to have it converted to null if None
- */
-case class Nullable( wrapped: Option[ Any ] )
-
-/**
- * Wrap a parameter string in an Identifier to avoid escaping
- */ 
-case class Identifier( wrapped: String )
-
-/**
  * Currently a private object responsible for formatting SQL used in 
  * transactions (@see Transaction). It does properly format standards 
  * classes like DateTime, Floats, Longs and Integers as well as some 
@@ -39,13 +22,13 @@ class SQLFormatter(
 ) {
     private val sqlQuote = "'"
     
-    def format( sql: String, params: Any* ): String = formatSeq( sql, params.toSeq )
+    def format( sql: String, params: Formattable* ): String = formatSeq( sql, params.toSeq )
 
-    def formatSeq( sql: String, params: Seq[ Any ] ): String = {
-        sql.format( params.map( escapeParam ): _* )
+    def formatSeq( sql: String, params: Seq[ Formattable ] ): String = {
+        sql.format( params.map( _.escaped( this ) ): _* )
     }
-                
-    private def escapeString( str: String ) = {
+    
+    def escapeString( str: String ) = {
         val sb = new StringBuilder
         
         sb.append( sqlQuote ).append(
@@ -54,33 +37,9 @@ class SQLFormatter(
         
         sb.toString
     }
-    
-    private def escapeDateTime(date: DateTime):Any = {
-        escapeString( timeStampFormatter.print( date ) )
-    }
-        
-    private def escapeParam( param: Any ): Any = param match {
-        case str: String => escapeString( str )
-        case dateTime: DateTime => escapeDateTime( dateTime )
-        case duration: Duration => duration.getMillis
-        case date: Date => escapeDateTime( new DateTime( date.getTime ) )
-        case int: Int => int.toString
-        case long: Long => long.toString
-        case double: Double => "%f".format( double )
-        case float: Float => "%f".format( float )
-        case Identifier( wrapped ) => wrapped
-        case NullComparable( wrapped ) => {
-            wrapped.map( "=" + escapeParam( _ ) ).getOrElse( "is null" )
-        }
-        case Nullable( wrapped ) => {
-            wrapped.map( escapeParam( _ ) ).getOrElse( "null" )
-        }
-        case _ => param.toString
-    }   
 }
 
 object SQLFormatter {
-
     /**
      * SQLFormatter for dbs supporting ISODateTimeFormat
      */
@@ -99,5 +58,14 @@ object SQLFormatter {
     }
 }
 
-object SQLFormatters {
+object SQLFormatterImplicits {
+    implicit def string2Formattable( wrapped: String ) = StringFormattable( wrapped )
+    implicit def boolean2Formattable( wrapped: Boolean ) = BooleanFormattable( wrapped )
+    implicit def long2Formattable( wrapped: Long ) = LongFormattable( wrapped )
+    implicit def int2Formattable( wrapped: Int ) = IntFormattable( wrapped )
+    implicit def float2Formattable( wrapped: Float ) = FloatFormattable( wrapped )
+    implicit def double2Formattable( wrapped: Double ) = DoubleFormattable( wrapped )
+    implicit def dateTime2Formattable( wrapped: DateTime ) = DateTimeFormattable( wrapped )
+    implicit def date2Formattable( wrapped: Date ) = DateTimeFormattable( wrapped )
+    implicit def duration2Formattable( wrapped: Duration ) = new DurationFormattable( wrapped )
 }

@@ -6,6 +6,9 @@ import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
 
+import net.noerd.prequel.SQLFormatterImplicits._
+import net.noerd.prequel.ResultSetRowImplicits._
+
 class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
     
     implicit val databaseConfig = TestDatabase.config
@@ -32,6 +35,22 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (1)
+            }            
+        }
+
+        it( "should rollback if asked to do so" ) {
+
+            InTransaction { tx =>
+                
+                tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
+                tx.rollback()
+            }
+            
+            InTransaction { tx =>
+                
+                val count = tx.selectLong( "select count(*) from intransactionspec" )
+                
+                count should be (0)
             }            
         }
 

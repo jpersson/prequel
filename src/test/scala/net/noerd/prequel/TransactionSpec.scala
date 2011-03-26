@@ -6,6 +6,9 @@ import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
 
+import net.noerd.prequel.SQLFormatterImplicits._
+import net.noerd.prequel.ResultSetRowImplicits._
+
 class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
     
     implicit val databaseConfig = TestDatabase.config
@@ -29,7 +32,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 InTransaction { tx =>
                     val expected = Seq( "test1", "test2", "test3" )
                     val actual = tx.select("select name from transactionspec") { row =>
-                        row.nextString
+                        row.nextString.get
                     }
                     
                     actual should equal (expected) 
@@ -42,20 +45,20 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                         """select name from transactionspec 
                             where id > 1000
                         """
-                    ) { _.nextString }
+                    ) { _.nextString.get }
                 
                     actual should be ('empty) 
                 }
             }
         }
 
-        describe( "selectHead" ) {
+        describe( "selectHeadOption" ) {
             
             it( "should return the first record if one or more is returned by query" ) {
                 InTransaction { tx =>
                     val expected = Some( "test1" )
-                    val actual = tx.selectHead("select name from transactionspec") { row =>
-                        row.nextString
+                    val actual = tx.selectHeadOption("select name from transactionspec") { row =>
+                        row.nextString.get
                     }
                     
                     actual should equal (expected)
@@ -65,14 +68,42 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             it( "should return None if the query did not return any records" ) {
                 InTransaction { tx =>
                     val expected = None
-                    val actual = tx.selectHead(
+                    val actual = tx.selectHeadOption(
                         """select name from transactionspec 
                             where id > 1000
                         """
-                    ) { _.nextString }
+                    ) { _.nextString.get }
                     
                     actual should equal (expected)
                 }                
+            }
+        }
+        
+        describe( "selectHead" ) {
+            
+            it( "should return the first column of the first record" ) {
+                InTransaction { tx =>
+                    val expected = 242L
+                    val actual = tx.selectHead( "select id from transactionspec" )( row2Long )
+                    
+                    actual should equal (expected) 
+                }                
+            }
+            
+            it( "should throw a NoSuchElementException if no record was returned" ) {
+                InTransaction { tx =>
+                    try {
+                        tx.selectHead(
+                            """select id from transactionspec 
+                                where id > 1000
+                            """
+                        )( row2Long )
+                        error( "this should not execute" )
+                    }
+                    catch {
+                        case e: NoSuchElementException => // Expected
+                    }
+                }
             }
         }
 
@@ -80,7 +111,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             
             it( "should return the first column of the first records as a Long" ) {
                 InTransaction { tx =>
-                    val expected = 242
+                    val expected = 242L
                     val actual = tx.selectLong("select id from transactionspec")
                     
                     actual should equal (expected) 

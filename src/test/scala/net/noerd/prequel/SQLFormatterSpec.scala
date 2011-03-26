@@ -1,103 +1,25 @@
 package net.noerd.prequel
 
-import java.util.Date
+import org.joda.time.Duration
 
 import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 
-import org.joda.time.DateTime
+import net.noerd.prequel.SQLFormatter.DefaultSQLFormatter
+import net.noerd.prequel.SQLFormatterImplicits._
+import net.noerd.prequel.ResultSetRowImplicits._
 
 class SQLFormatterSpec extends Spec with ShouldMatchers {
     
-    val timeStampFormatter = SQLFormatter.HSQLDBSQLFormatter.timeStampFormatter
-
-    def format( sql: String, params: Any* ) = {
-        SQLFormatter.HSQLDBSQLFormatter.formatSeq( sql, params.toSeq )
-    }
-
     describe( "SQLFormatter" ) {
-        
-        it( "should format DateTime params") {
-            val dateTime: DateTime = timeStampFormatter.parseDateTime( "2010-03-13 13:00:00.0000" )
-            val expected = "insert into foo values('2010-03-13 13:00:00.0000')"
-            val actual = format( "insert into foo values(%s)", dateTime )
+        it( "should combine the parameters with the query") {
+            val expected = "insert into testtable( c1, c3, c4) values( 234, 'test', 3900000 )"
+            val actual = DefaultSQLFormatter.format(
+                "insert into %s( c1, c3, c4) values( %s, %s, %s )",
+                Identifier( "testtable" ), 234, "test", Duration.standardMinutes( 65 )
+            )
             
             actual should equal (expected)
         }
-        
-        it( "should format Date params") {
-            val date: Date = timeStampFormatter.parseDateTime( "2010-03-13 13:00:00.0000" ).toDate
-            val expected = "insert into foo values('2010-03-13 13:00:00.0000')"
-            val actual = format( "insert into foo values(%s)", date )
-            
-            actual should equal (expected)
-        }
-
-        it( "should format NullComparable params") {
-            
-            val expectedNone = "select from foo where bar is null"
-            val actualNone = format( "select from foo where bar %s", NullComparable( None ) )
-            
-            actualNone should equal (expectedNone)
-            
-            val expectedSome = "select * from foo where bar ='foobar'"
-            val actualSome = format( "select * from foo where bar %s", NullComparable( Some("foobar") ) )
-            
-            actualSome should equal (expectedSome)
-        }        
-
-        it( "should format Nullable params") {
-            
-            val expectedNone = "insert into foo values(null)"
-            val actualNone = format( "insert into foo values(%s)", Nullable( None ) )
-            
-            actualNone should equal (expectedNone)
-            
-            val expectedSome = "insert into foo values('bar')"
-            val actualSome = format( "insert into foo values(%s)", Nullable( Some("bar") ) )
-            
-            actualSome should equal (expectedSome)
-        }        
-
-        it( "should format Identifier params") {
-            
-            val expected = "insert into foo.bar values('test')"
-            val actual = format( "insert into %s values(%s)", Identifier( "foo.bar" ), "test" )
-            
-            actual should equal (expected)
-        }
-
-        it( "should format String params" ) {
-            
-            val expected = "select * from foo where bar = 'test'"
-            val actual = format( "select * from foo where bar = %s", "test" )
-            
-            actual should equal (expected)
-        }
-        
-        it( "should format Long params" ) {
-            
-            val expected = "select * from foo where bar = 123456"
-            val actual = format( "select * from foo where bar = %s", 123456L )
-            
-            actual should equal (expected)
-        }
-
-        it( "should format Int params" ) {
-            
-            val expected = "select * from foo where bar = 123456"
-            val actual = format( "select * from foo where bar = %s", 123456 )
-            
-            actual should equal (expected)
-        }
-
-        it( "should format Float params" ) {
-            
-            val expected = "select * from foo where bar = 1.500000"
-            val actual = format( "select * from foo where bar = %s", 1.5F )
-            
-            actual should equal (expected)
-        }
-
     }
 }
