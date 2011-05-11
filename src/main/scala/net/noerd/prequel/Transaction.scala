@@ -99,7 +99,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a long
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectLong( sql: String, params: Formattable* ): Long = selectHead( sql, params.toSeq: _* )( row2Long )
+    def selectLong( sql: String, params: Formattable* ): Long = {
+        selectHead( sql, params.toSeq: _* )( row2Long )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a Int
@@ -110,7 +112,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a Int
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectInt( sql: String, params: Formattable* ): Int = selectHead( sql, params.toSeq: _* )( row2Int )
+    def selectInt( sql: String, params: Formattable* ): Int = {
+        selectHead( sql, params.toSeq: _* )( row2Int )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a Boolean
@@ -121,7 +125,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a Boolean
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectBoolean( sql: String, params: Formattable* ): Boolean = selectHead( sql, params.toSeq: _* )( row2Boolean )
+    def selectBoolean( sql: String, params: Formattable* ): Boolean = {
+        selectHead( sql, params.toSeq: _* )( row2Boolean )
+    }
     
     /** 
      * Convience method for intepreting the first column of the first record as a String
@@ -132,7 +138,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a String
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectString( sql: String, params: Formattable* ): String = selectHead( sql, params.toSeq: _* )( row2String )
+    def selectString( sql: String, params: Formattable* ): String = {
+        selectHead( sql, params.toSeq: _* )( row2String )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a Float
@@ -143,7 +151,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a Float
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectFloat( sql: String, params: Formattable* ): Float = selectHead( sql, params.toSeq: _* )( row2Float )
+    def selectFloat( sql: String, params: Formattable* ): Float = {
+        selectHead( sql, params.toSeq: _* )( row2Float )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a Double
@@ -154,7 +164,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a Double
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectDouble( sql: String, params: Formattable* ): Double = selectHead( sql, params.toSeq: _* )( row2Double )
+    def selectDouble( sql: String, params: Formattable* ): Double = {
+        selectHead( sql, params.toSeq: _* )( row2Double )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a DateTime
@@ -165,7 +177,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a DateTime
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectDateTime( sql: String, params: Formattable* ): DateTime = selectHead( sql, params.toSeq: _* )( row2DateTime )
+    def selectDateTime( sql: String, params: Formattable* ): DateTime = {
+        selectHead( sql, params.toSeq: _* )( row2DateTime )
+    }
 
     /** 
      * Convience method for intepreting the first column of the first record as a Duration
@@ -176,7 +190,9 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the value in the first column could not be intepreted as a Duration
      * @throws NoSuchElementException if the query did not return any records.
      */
-    def selectDuration( sql: String, params: Formattable* ): Duration = selectHead( sql, params.toSeq: _* )( row2Duration )    
+    def selectDuration( sql: String, params: Formattable* ): Duration = {
+        selectHead( sql, params.toSeq: _* )( row2Duration )
+    }
     
     /**
      * Executes the given query and returns the number of affected records
@@ -186,8 +202,23 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      */
     def execute( sql: String, params: Formattable* ): Int = {
         connection.usingStatement { statement =>
+            println("executing: "+formatter.formatSeq( sql, params.toSeq ) )
             statement.executeUpdate( formatter.formatSeq( sql, params.toSeq ) )
         }
+    }
+    
+    def batchExecute[ T ]( 
+        sql: String, 
+        items: Iterable[T] )
+    ( block: (RichPreparedStatement, T) => Unit ): Int = {
+        var affectedRecords = 0
+        connection.usingPreparedStatement( sql, formatter ) { statement =>
+            items.foreach { item =>
+                block( statement, item )
+                affectedRecords += statement.execute
+            }
+        }
+        affectedRecords
     }
     
     /**

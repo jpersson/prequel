@@ -146,5 +146,17 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 }
             }
         }
+        
+        describe( "batchExecute" ) {
+            it( "should execute the batch of items" ) {
+                case class Item( v1: Long, v2: String )
+                val items = Seq( Item( 1, "test" ) )
+                InTransaction { tx =>
+                    tx.batchExecute( "insert into transactionspec values(?, ?)", items ) { ( statement, item ) =>
+                        statement << item.v1 << item.v2
+                    }
+                }
+            }
+        }
     }
 }

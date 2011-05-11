@@ -25,18 +25,16 @@ class SQLFormatter(
     def format( sql: String, params: Formattable* ): String = formatSeq( sql, params.toSeq )
 
     def formatSeq( sql: String, params: Seq[ Formattable ] ): String = {
-        sql.format( params.map( _.escaped( this ) ): _* )
+        sql.format( params.map( p => quoteString( p.escaped( this ) ) ): _* )
     }
     
-    def escapeString( str: String ) = {
+    def escapeString( str: String ): String = escapeSql( str ).replace( "\\", "\\\\" )
+    
+    def quoteString( str: String ): String = {
         val sb = new StringBuilder
-        
-        sb.append( sqlQuote ).append(
-            escapeSql( str ).replace( "\\", "\\\\" )
-        ).append( sqlQuote )
-        
+        sb.append( sqlQuote ).append( str ).append( sqlQuote )
         sb.toString
-    }
+    } 
 }
 
 object SQLFormatter {

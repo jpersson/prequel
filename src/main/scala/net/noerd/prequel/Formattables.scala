@@ -15,6 +15,9 @@ class NullComparable( val value: Option[ Formattable ] ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value.map( "=" + _.escaped( formatter) ).getOrElse( "is null" )
     }
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        error( "incompatible with prepared statements" )
+    }
 }
 object NullComparable {
     def apply( value: Option[ Formattable ] ) = new NullComparable( value )
@@ -26,6 +29,9 @@ object NullComparable {
 class Nullable( val value: Option[ Formattable ] ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value.map( _.escaped( formatter ) ).getOrElse( "null" )
+    }
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addNull
     }
 }
 object Nullable {
@@ -39,6 +45,9 @@ class Identifier( val value: String ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value
     }
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addString( value )
+    }
 }
 object Identifier {
     def apply( value: String ) = new Identifier( value )
@@ -51,6 +60,9 @@ class StringFormattable( val value: String ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         formatter.escapeString( value ) 
     }
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addString( value )
+    }
 }
 object StringFormattable{
     def apply( value: String ) = new StringFormattable( value )
@@ -61,6 +73,9 @@ object StringFormattable{
 // 
 class BooleanFormattable( val value: Boolean ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addBoolean( value )
+    }
 }
 object BooleanFormattable {
     def apply( value: Boolean ) = new BooleanFormattable( value )
@@ -71,6 +86,9 @@ object BooleanFormattable {
 //
 class LongFormattable( val value: Long ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addLong( value )
+    }
 }
 object LongFormattable{
     def apply( value: Long ) = new LongFormattable( value )
@@ -81,6 +99,9 @@ object LongFormattable{
 //
 class IntFormattable( val value: Int ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addInt( value )
+    }
 }
 object IntFormattable{
     def apply( value: Int ) = new IntFormattable( value )
@@ -91,6 +112,9 @@ object IntFormattable{
 //
 class FloatFormattable( val value: Float ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = "%f".format( value )
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addFloat( value )
+    }
 }
 object FloatFormattable{
     def apply( value: Float ) = new FloatFormattable( value )
@@ -101,6 +125,9 @@ object FloatFormattable{
 //
 class DoubleFormattable( val value: Double ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = "%f".format( value )
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addDouble( value )
+    }
 }
 object DoubleFormattable{
     def apply( value: Double ) = new DoubleFormattable( value )
@@ -113,6 +140,9 @@ class DateTimeFormattable( val value: DateTime )
 extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         formatter.escapeString( formatter.timeStampFormatter.print( value ) )
+    }
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addDateTime( value )
     }
 }
 object DateTimeFormattable{
@@ -133,6 +163,9 @@ object DateTimeFormattable{
 class DurationFormattable( val value: Duration ) 
 extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.getMillis.toString
+    override def addTo( statement: RichPreparedStatement ): Unit = {
+        statement.addLong( value.getMillis )
+    }
 }
 object DurationFormattable{
     def apply( value: Duration ) = new DurationFormattable( value )
