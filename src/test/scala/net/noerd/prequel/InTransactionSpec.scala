@@ -53,7 +53,7 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
             intercept[RuntimeException] {
                 InTransaction { tx =>
                     tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
-                    error( "oh no" )
+                    sys.error( "oh no" )
                 }
             }
             
@@ -85,7 +85,7 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
                 intercept[RuntimeException] {
                     tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                     usedConnection = tx.connection
-                    error( "oh no" )
+                    sys.error( "oh no" )
                 }
             }
             usedConnection.isClosed should be (true)

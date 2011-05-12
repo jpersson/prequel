@@ -16,7 +16,7 @@ class NullComparable( val value: Option[ Formattable ] ) extends Formattable {
         value.map( "=" + _.escaped( formatter) ).getOrElse( "is null" )
     }
     override def addTo( statement: RichPreparedStatement ): Unit = {
-        error( "incompatible with prepared statements" )
+        sys.error( "incompatible with prepared statements" )
     }
 }
 object NullComparable {

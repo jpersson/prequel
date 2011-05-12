@@ -98,7 +98,6 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                                 where id > 1000
                             """
                         )( row2Long )
-                        error( "this should not execute" )
                     }
                 }
             }

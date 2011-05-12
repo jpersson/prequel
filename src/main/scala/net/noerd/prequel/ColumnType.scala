@@ -10,7 +10,7 @@ trait ColumnType[ T ] {
      * @throws RunTimeException if the value was null
      */
     def nextValue: T = nextValueOption.getOrElse( 
-        error( "unexpected null value")
+        sys.error( "unexpected null value")
     )
     /**
      * To be implemented. Should return Some if the value
