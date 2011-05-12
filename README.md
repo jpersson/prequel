@@ -24,46 +24,46 @@ Although I'm using this library in my own projects I have not tested it with mas
 Example
 -------
 
-    ```scala
-    import net.noerd.prequel.InTransaction
-    import net.noerd.prequel.DatabaseConfig
-    import net.noerd.prequel.ResultSetRowImplicits._
-    import net.noerd.prequel.SQLFormatterImplicits._    
-    
-    case class Bicycle( id: Long, brand: String, releaseDate: DateTime)
+```scala
+import net.noerd.prequel.InTransaction
+import net.noerd.prequel.DatabaseConfig
+import net.noerd.prequel.ResultSetRowImplicits._
+import net.noerd.prequel.SQLFormatterImplicits._    
 
-    object PrequelTest {
-        // The database config should be created only once
-        // since it's used during connection pooling
-        implicit val databaseConfig = DatabaseConfig( 
-            driver = "org.hsqldb.jdbc.JDBCDriver",
-            jdbcURL = "jdbc:hsqldb:mem:mymemdb"
-        )
-       
-        def insertBicycle( bike: Bicycle ): Unit = {
-            InTransaction { tx => 
-                tx.execute( 
-                    "insert into bicycles( id, brand, release_date ) values( %s, %s, %s )", 
-                    bike.id, bike.brand, bike.releaseDate
-                )
-            }
+case class Bicycle( id: Long, brand: String, releaseDate: DateTime)
+
+object PrequelTest {
+    // The database config should be created only once
+    // since it's used during connection pooling
+    implicit val databaseConfig = DatabaseConfig( 
+        driver = "org.hsqldb.jdbc.JDBCDriver",
+        jdbcURL = "jdbc:hsqldb:mem:mymemdb"
+    )
+   
+    def insertBicycle( bike: Bicycle ): Unit = {
+        InTransaction { tx => 
+            tx.execute( 
+                "insert into bicycles( id, brand, release_date ) values( %s, %s, %s )", 
+                bike.id, bike.brand, bike.releaseDate
+            )
         }
-        
-        def fetchBicycles(): Seq[ Bicycles ] = {
-            InTransaction { tx => 
-                tx.select( "select id, brand, release_date from bicycles" ) { r =>
-                    Bicycle( r, r, r )
-                }
-            }
-        }
-        
-        def fetchBicycleCount: Long = {
-            InTransaction { tx => 
-                tx.selectLong( "select count(*) from bicycles")
+    }
+    
+    def fetchBicycles(): Seq[ Bicycles ] = {
+        InTransaction { tx => 
+            tx.select( "select id, brand, release_date from bicycles" ) { r =>
+                Bicycle( r, r, r )
             }
         }
     }
-    ```
+    
+    def fetchBicycleCount: Long = {
+        InTransaction { tx => 
+            tx.selectLong( "select count(*) from bicycles")
+        }
+    }
+}
+```
     
 Dependencies
 ------------
