@@ -24,6 +24,7 @@ Although I'm using this library in my own projects I have not tested it with mas
 Example
 -------
 
+    ```scala
     import net.noerd.prequel.InTransaction
     import net.noerd.prequel.DatabaseConfig
     import net.noerd.prequel.ResultSetRowImplicits._
