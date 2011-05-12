@@ -58,7 +58,7 @@ object Identifier {
 //
 class StringFormattable( val value: String ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
-        formatter.escapeString( value ) 
+        formatter.toSQLString( value ) 
     }
     override def addTo( statement: RichPreparedStatement ): Unit = {
         statement.addString( value )
@@ -139,7 +139,7 @@ object DoubleFormattable{
 class DateTimeFormattable( val value: DateTime ) 
 extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
-        formatter.escapeString( formatter.timeStampFormatter.print( value ) )
+        formatter.toSQLString( formatter.timeStampFormatter.print( value ) )
     }
     override def addTo( statement: RichPreparedStatement ): Unit = {
         statement.addDateTime( value )

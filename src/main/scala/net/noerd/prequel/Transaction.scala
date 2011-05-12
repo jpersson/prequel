@@ -202,7 +202,6 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      */
     def execute( sql: String, params: Formattable* ): Int = {
         connection.usingStatement { statement =>
-            println("executing: "+formatter.formatSeq( sql, params.toSeq ) )
             statement.executeUpdate( formatter.formatSeq( sql, params.toSeq ) )
         }
     }

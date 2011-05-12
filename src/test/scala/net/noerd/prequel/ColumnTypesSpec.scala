@@ -19,10 +19,10 @@ trait ColumnTypeSpec[ T ] extends Spec with ShouldMatchers with BeforeAndAfterEa
 
     override def beforeEach() = InTransaction { tx =>
         tx.execute( 
-            "create table columntypespec(c1 %s, c2 %s)", 
+            "create table columntypespec(c1 ?, c2 ?)", 
             Identifier( sqlType ), Identifier( sqlType ) 
         )
-        tx.execute( "insert into columntypespec values(%s, null)", testValue )
+        tx.execute( "insert into columntypespec values(?, null)", testValue )
     }
     
     override def afterEach() = InTransaction { tx =>

@@ -42,7 +42,7 @@ Example
         def insertBicycle( bike: Bicycle ): Unit = {
             InTransaction { tx => 
                 tx.execute( 
-                    "insert into bicycles( id, brand, release_date ) values( %s, %s, %s )", 
+                    "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )", 
                     bike.id, bike.brand, bike.releaseDate
                 )
             }

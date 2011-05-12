@@ -15,7 +15,7 @@ class SQLFormatterSpec extends Spec with ShouldMatchers {
         it( "should combine the parameters with the query") {
             val expected = "insert into testtable( c1, c3, c4) values( 234, 'test', 3900000 )"
             val actual = DefaultSQLFormatter.format(
-                "insert into %s( c1, c3, c4) values( %s, %s, %s )",
+                "insert into ?( c1, c3, c4) values( ?, ?, ? )",
                 Identifier( "testtable" ), 234, "test", Duration.standardMinutes( 65 )
             )
             
