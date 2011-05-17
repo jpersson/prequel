@@ -2,6 +2,8 @@ package net.noerd.prequel
 
 import java.sql.SQLException
 
+import scala.collection.mutable.ArrayBuffer
+
 import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
@@ -157,6 +159,45 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 }
                 
                 count should equal (existingItems.size)
+            }
+            
+            it( "should be faster than normal execute-calls" ) {
+                case class Item( v1: Long, v2: String )
+
+                def batchExecute( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
+                    val start = System.currentTimeMillis
+                    tx.batchExecute( query, items ) { ( statement, item ) =>
+                        statement << item.v1 << item.v2
+                    }
+                    System.currentTimeMillis - start
+                }
+                
+                def normalExecute( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
+                    val start = System.currentTimeMillis
+                    items.foreach { item =>
+                        tx.execute( query, item.v1, item.v2 )
+                    }
+                    System.currentTimeMillis - start
+                }
+                
+                
+                val size = 1000
+                val items = {
+                    val tmp = new ArrayBuffer[Item]
+                    for (i <- 0 until size) {
+                        tmp += Item( i, "foo"+i )
+                    }
+                    tmp
+                }
+                
+                InTransaction { tx =>
+                    val sql = "insert into transactionspec values(?, ?)"
+                    val normalTiming = normalExecute( sql, items, tx )
+                    val batchTiming = batchExecute( sql, items, tx )
+                    val difference: Double = normalTiming / batchTiming
+                    println( "executing "+size+" made a difference of "+(difference*100)+"%" )
+                    difference should be > (1.0)
+                }
             }
             
         }

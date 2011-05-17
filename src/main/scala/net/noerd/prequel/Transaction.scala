@@ -199,6 +199,7 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      *
      * @param sql query that must not return any records
      * @param params are the optional parameters used in the query
+     * @return the number of affected records
      */
     def execute( sql: String, params: Formattable* ): Int = {
         connection.usingStatement { statement =>
@@ -206,6 +207,14 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
         }
     }
     
+    /**
+     * Execute the sql-query for all the given items. The block must set all
+     * parameters of the query but not execute the statement since this is done
+     * internally by this method
+     *
+     * @throws IllegalStateException if the statement was executed in the block
+     * @return the number of affected records
+     */
     def batchExecute[ T ]( 
         sql: String, 
         items: Iterable[T] )
@@ -218,6 +227,14 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
             }
         }
         affectedRecords
+    }
+
+    /**
+     * Will pass a RichPreparedStatement to the given block. This block
+     * may add parameters to the statement and execute it multiple times.
+     */
+    def batchExecute[ T ]( sql: String )( block: (RichPreparedStatement) => Unit ): Unit = {
+        connection.usingPreparedStatement( sql, formatter )( block )
     }
     
     /**
