@@ -208,33 +208,21 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
     }
     
     /**
-     * Execute the sql-query for all the given items. The block must set all
-     * parameters of the query but not execute the statement since this is done
-     * internally by this method
-     *
-     * @throws IllegalStateException if the statement was executed in the block
-     * @return the number of affected records
-     */
-    def batchExecute[ T ]( 
-        sql: String, 
-        items: Iterable[T] )
-    ( block: (RichPreparedStatement, T) => Unit ): Int = {
-        var affectedRecords = 0
-        connection.usingPreparedStatement( sql, formatter ) { statement =>
-            items.foreach { item =>
-                block( statement, item )
-                affectedRecords += statement.execute
-            }
-        }
-        affectedRecords
-    }
-
-    /**
-     * Will pass a RichPreparedStatement to the given block. This block
+     * Will pass a ReusableStatement to the given block. This block
      * may add parameters to the statement and execute it multiple times.
+     * The statement will be automatically closed onced the block returns.
+     * 
+     * Example:
+     *     tx.executeBatch( "insert into foo values(?)" ) { statement =>
+     *         items.foreach { statement.executeWith( _ ) }
+     *     }
+     *
+     * @return the result of the block
+     * @throws SQLException if the query is missing parameters when executed
+     *         or if they are of the wrong type.
      */
-    def batchExecute[ T ]( sql: String )( block: (RichPreparedStatement) => Unit ): Unit = {
-        connection.usingPreparedStatement( sql, formatter )( block )
+    def executeBatch[ T ]( sql: String )( block: (ReusableStatement) => T ): T = {
+        connection.usingReusableStatement( sql, formatter )( block )
     }
     
     /**

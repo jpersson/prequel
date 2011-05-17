@@ -133,13 +133,17 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
         }
         
-        describe( "batchExecute" ) {
+        describe( "executeBatch" ) {
             it( "should return the number of inserted records" ) {
                 case class Item( v1: Long, v2: String )
                 val items = Seq( Item( 1, "test" ), Item( 1, "test" ) )
                 val count = InTransaction { tx =>
-                    tx.batchExecute( "insert into transactionspec values(?, ?)", items ) { ( statement, item ) =>
-                        statement << item.v1 << item.v2
+                    tx.executeBatch( "insert into transactionspec values(?, ?)" ) { statement =>
+                        var counter = 0
+                        items.foreach { item =>
+                            counter += ( statement << item.v1 << item.v2 <<! )
+                        }
+                        counter
                     }
                 }
                 
@@ -150,11 +154,12 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 val itemsToUpdate = Seq( 23, 42, 38, 232 )
                 val existingItems = Seq( 23, 42 )
                 val count = InTransaction { tx =>
-                    tx.batchExecute( 
-                        "update transactionspec set name='foo' where id=?", 
-                        itemsToUpdate 
-                    ) { ( statement, item ) =>
-                        statement << item
+                    tx.executeBatch( "update transactionspec set name='foo' where id=?" ) { statement =>
+                        var counter = 0
+                        itemsToUpdate.foreach { item => 
+                            counter += ( statement << item <<! ) 
+                        }
+                        counter
                     }
                 }
                 
@@ -164,10 +169,12 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             it( "should be faster than normal execute-calls" ) {
                 case class Item( v1: Long, v2: String )
 
-                def batchExecute( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
+                def executeBatch( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
                     val start = System.currentTimeMillis
-                    tx.batchExecute( query, items ) { ( statement, item ) =>
-                        statement << item.v1 << item.v2
+                    tx.executeBatch( query ) { statement =>
+                        items.foreach { item =>
+                            statement << item.v1 << item.v2 <<!
+                        }
                     }
                     System.currentTimeMillis - start
                 }
@@ -193,7 +200,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                 InTransaction { tx =>
                     val sql = "insert into transactionspec values(?, ?)"
                     val normalTiming = normalExecute( sql, items, tx )
-                    val batchTiming = batchExecute( sql, items, tx )
+                    val batchTiming = executeBatch( sql, items, tx )
                     val difference: Double = normalTiming / batchTiming
                     println( "executing "+size+" made a difference of "+(difference*100)+"%" )
                     difference should be > (1.0)

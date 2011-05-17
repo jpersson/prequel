@@ -15,7 +15,7 @@ class NullComparable( val value: Option[ Formattable ] ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value.map( "=" + _.escaped( formatter) ).getOrElse( "is null" )
     }
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         sys.error( "incompatible with prepared statements" )
     }
 }
@@ -30,7 +30,7 @@ class Nullable( val value: Option[ Formattable ] ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value.map( _.escaped( formatter ) ).getOrElse( "null" )
     }
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addNull
     }
 }
@@ -45,7 +45,7 @@ class Identifier( val value: String ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         value
     }
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addString( value )
     }
 }
@@ -60,7 +60,7 @@ class StringFormattable( val value: String ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         formatter.toSQLString( value ) 
     }
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addString( value )
     }
 }
@@ -73,7 +73,7 @@ object StringFormattable{
 // 
 class BooleanFormattable( val value: Boolean ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addBoolean( value )
     }
 }
@@ -86,7 +86,7 @@ object BooleanFormattable {
 //
 class LongFormattable( val value: Long ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addLong( value )
     }
 }
@@ -99,7 +99,7 @@ object LongFormattable{
 //
 class IntFormattable( val value: Int ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.toString
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addInt( value )
     }
 }
@@ -112,7 +112,7 @@ object IntFormattable{
 //
 class FloatFormattable( val value: Float ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = "%f".format( value )
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addFloat( value )
     }
 }
@@ -125,7 +125,7 @@ object FloatFormattable{
 //
 class DoubleFormattable( val value: Double ) extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = "%f".format( value )
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addDouble( value )
     }
 }
@@ -141,7 +141,7 @@ extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = {
         formatter.toSQLString( formatter.timeStampFormatter.print( value ) )
     }
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addDateTime( value )
     }
 }
@@ -163,7 +163,7 @@ object DateTimeFormattable{
 class DurationFormattable( val value: Duration ) 
 extends Formattable {
     override def escaped( formatter: SQLFormatter ): String = value.getMillis.toString
-    override def addTo( statement: RichPreparedStatement ): Unit = {
+    override def addTo( statement: ReusableStatement ): Unit = {
         statement.addLong( value.getMillis )
     }
 }

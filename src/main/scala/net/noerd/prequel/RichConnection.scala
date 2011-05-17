@@ -17,12 +17,12 @@ private[prequel] class RichConnection( val wrapped: Connection ) {
         }       
     }
 
-    def usingPreparedStatement[ T ](
+    def usingReusableStatement[ T ](
         sql: String,
         formatter: SQLFormatter
     )
-    ( block: (RichPreparedStatement) => T ): T = {
-        val statement = new RichPreparedStatement( wrapped.prepareStatement( sql ), formatter )
+    ( block: (ReusableStatement) => T ): T = {
+        val statement = new ReusableStatement( wrapped.prepareStatement( sql ), formatter )
 
         try {
             block( statement )
