@@ -24,7 +24,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             InTransaction { tx =>
                 val expectedColumns = Seq( "id", "name" )
                 tx.execute( "create table resultsetrowspec(id int, name varchar(265))" )
-                tx.execute( "insert into resultsetrowspec values(%s, %s)", 242, "test1" )                
+                tx.execute( "insert into resultsetrowspec values(?, ?)", 242, "test1" )                
                 tx.select("select id, name from resultsetrowspec") { row =>
                     row.columnNames should equal (expectedColumns)
                     row.nextString
@@ -36,7 +36,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some(false)
             val value2 = None
             tx.execute( "create table boolean_table(c1 boolean, c2 boolean)" )
-            tx.execute( "insert into boolean_table values(%s, null)", value1.get)
+            tx.execute( "insert into boolean_table values(?, null)", value1.get)
             tx.select( "select c1, c2 from boolean_table" ) { row =>
                 row.nextBoolean should equal (value1)
                 row.nextBoolean should equal (value2)
@@ -47,7 +47,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some(12345L)
             val value2 = None
             tx.execute( "create table long_table(c1 bigint, c2 bigint)" )
-            tx.execute( "insert into long_table values(%s, null)", value1.get)
+            tx.execute( "insert into long_table values(?, null)", value1.get)
             tx.select( "select c1, c2 from long_table" ) { row =>
                 row.nextLong should equal (value1)
                 row.nextLong should equal (value2)
@@ -58,7 +58,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some( 12345 )
             val value2 = None
             tx.execute( "create table int_table(c1 int, c2 int)" )
-            tx.execute( "insert into int_table values(%s, null)", value1.get)
+            tx.execute( "insert into int_table values(?, null)", value1.get)
             tx.select( "select c1, c2 from int_table" ) { row =>
                 row.nextInt should equal (value1)
                 row.nextInt should equal (value2)
@@ -69,7 +69,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some( "test" )
             val value2 = None
             tx.execute( "create table string_table(c1 varchar(256), c2 varchar(16))" )
-            tx.execute( "insert into string_table values(%s, null)", value1.get)
+            tx.execute( "insert into string_table values(?, null)", value1.get)
             tx.select( "select c1, c2 from string_table" ) { row =>
                 row.nextString should equal (value1)
                 row.nextString should equal (value2)
@@ -80,7 +80,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some( new Date )
             val value2 = None
             tx.execute( "create table date_table(c1 timestamp, c2 timestamp)" )
-            tx.execute( "insert into date_table values(%s, null)", value1.get )
+            tx.execute( "insert into date_table values(?, null)", value1.get )
             tx.select( "select c1, c2 from date_table" ) { row =>
                 row.nextDate.get.getTime should equal (value1.get.getTime)
                 row.nextDate should equal (value2)
@@ -91,7 +91,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some(1.5f)
             val value2 = None
             tx.execute( "create table float_table(c1 real, c2 real)" )
-            tx.execute( "insert into float_table values(%s, null)", value1.get )
+            tx.execute( "insert into float_table values(?, null)", value1.get )
             tx.select( "select c1, c2 from float_table" ) { row =>
                 row.nextFloat should equal (value1)
                 row.nextFloat should equal (value2)
@@ -102,7 +102,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             val value1 = Some(3274832748932743.45)
             val value2 = None
             tx.execute( "create table double_table(c1 real, c2 real)" )
-            tx.execute( "insert into double_table values(%s, null)", value1.get )
+            tx.execute( "insert into double_table values(?, null)", value1.get )
             tx.select( "select c1, c2 from double_table" ) { row =>
                 row.nextDouble should equal (value1)
                 row.nextDouble should equal (value2)

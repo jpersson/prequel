@@ -2,6 +2,8 @@ package net.noerd.prequel
 
 import java.sql.SQLException
 
+import scala.collection.mutable.ArrayBuffer
+
 import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
@@ -15,9 +17,9 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
     
     override def beforeEach() = InTransaction { tx =>
         tx.execute( "create table transactionspec(id int, name varchar(265))" )
-        tx.execute( "insert into transactionspec values(%s, %s)", 242, "test1" )
-        tx.execute( "insert into transactionspec values(%s, %s)", 23, "test2" )
-        tx.execute( "insert into transactionspec values(%s, %s)", 42, "test3" )
+        tx.execute( "insert into transactionspec values(?, ?)", 242, "test1" )
+        tx.execute( "insert into transactionspec values(?, ?)", 23, "test2" )
+        tx.execute( "insert into transactionspec values(?, ?)", 42, "test3" )
     }
     
     override def afterEach() = InTransaction { tx =>
@@ -92,16 +94,12 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             
             it( "should throw a NoSuchElementException if no record was returned" ) {
                 InTransaction { tx =>
-                    try {
+                    intercept[NoSuchElementException] {
                         tx.selectHead(
                             """select id from transactionspec 
                                 where id > 1000
                             """
                         )( row2Long )
-                        error( "this should not execute" )
-                    }
-                    catch {
-                        case e: NoSuchElementException => // Expected
                     }
                 }
             }
@@ -120,31 +118,95 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             
             it( "should throw an SQLException if the value is not a Long" ) {
                 InTransaction { tx =>
-                    try {
+                    intercept[SQLException] {
                         tx.selectLong("select 'nan' from transactionspec")
-                        error( "this should not execute" )
-                    }
-                    catch {
-                        case e: SQLException => // Expected
                     }
                 }                                
             }
 
             it( "should throw a NoSuchElementException if no record was returned" ) {
                 InTransaction { tx =>
-                    try {
-                        tx.selectLong(
-                            """select id from transactionspec 
-                                where id > 1000
-                            """
-                        )
-                        error( "this should not execute" )
-                    }
-                    catch {
-                        case e: NoSuchElementException => // Expected
+                    intercept[NoSuchElementException] {
+                         tx.selectLong( "select id from transactionspec where id > 1000" )
                     }
                 }
             }
+        }
+        
+        describe( "executeBatch" ) {
+            it( "should return the number of inserted records" ) {
+                case class Item( v1: Long, v2: String )
+                val items = Seq( Item( 1, "test" ), Item( 1, "test" ) )
+                val count = InTransaction { tx =>
+                    tx.executeBatch( "insert into transactionspec values(?, ?)" ) { statement =>
+                        var counter = 0
+                        items.foreach { item =>
+                            counter += ( statement << item.v1 << item.v2 <<! )
+                        }
+                        counter
+                    }
+                }
+                
+                count should equal (items.size)
+            }
+            
+            it( "should return the number of updated records" ) {
+                val itemsToUpdate = Seq( 23, 42, 38, 232 )
+                val existingItems = Seq( 23, 42 )
+                val count = InTransaction { tx =>
+                    tx.executeBatch( "update transactionspec set name='foo' where id=?" ) { statement =>
+                        var counter = 0
+                        itemsToUpdate.foreach { item => 
+                            counter += ( statement << item <<! ) 
+                        }
+                        counter
+                    }
+                }
+                
+                count should equal (existingItems.size)
+            }
+            
+            it( "should be faster than normal execute-calls" ) {
+                case class Item( v1: Long, v2: String )
+
+                def executeBatch( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
+                    val start = System.currentTimeMillis
+                    tx.executeBatch( query ) { statement =>
+                        items.foreach { item =>
+                            statement << item.v1 << item.v2 <<!
+                        }
+                    }
+                    System.currentTimeMillis - start
+                }
+                
+                def normalExecute( query: String, items: Iterable[ Item], tx: Transaction ): Long = {
+                    val start = System.currentTimeMillis
+                    items.foreach { item =>
+                        tx.execute( query, item.v1, item.v2 )
+                    }
+                    System.currentTimeMillis - start
+                }
+                
+                
+                val size = 1000
+                val items = {
+                    val tmp = new ArrayBuffer[Item]
+                    for (i <- 0 until size) {
+                        tmp += Item( i, "foo"+i )
+                    }
+                    tmp
+                }
+                
+                InTransaction { tx =>
+                    val sql = "insert into transactionspec values(?, ?)"
+                    val normalTiming = normalExecute( sql, items, tx )
+                    val batchTiming = executeBatch( sql, items, tx )
+                    val difference: Double = normalTiming / batchTiming
+                    println( "executing "+size+" made a difference of "+(difference*100)+"%" )
+                    difference should be > (1.0)
+                }
+            }
+            
         }
     }
 }

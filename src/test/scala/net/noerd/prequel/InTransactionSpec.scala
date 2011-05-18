@@ -24,14 +24,11 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
     describe( "InTransaction" ) {
         
         it( "should commit after block has been executed" ) {
-            
             InTransaction { tx =>
-                
-                tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
+                tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
             }
             
             InTransaction { tx =>
-                
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (1)
@@ -39,15 +36,12 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
         }
 
         it( "should rollback if asked to do so" ) {
-
             InTransaction { tx =>
-                
-                tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
+                tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                 tx.rollback()
             }
             
             InTransaction { tx =>
-                
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (0)
@@ -55,20 +49,15 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
         }
 
         it( "should rollback if an exception is thrown" ) {
-
-            try {
+            
+            intercept[RuntimeException] {
                 InTransaction { tx =>
-                
-                    tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
-                    error( "oh no" )
+                    tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
+                    sys.error( "oh no" )
                 }
             }
-            catch {
-                case e: RuntimeException => // expected
-            }
             
-            InTransaction { tx =>
-                
+            InTransaction { tx =>    
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (0)
@@ -80,9 +69,8 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
             
             var usedConnection: Connection = null
             
-            InTransaction { tx =>
-                
-                tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
+            InTransaction { tx =>                
+                tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                 usedConnection = tx.connection
             }
             
@@ -93,18 +81,13 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
             
             var usedConnection: Connection = null
             
-            try {
-                InTransaction { tx =>
-                
-                    tx.execute( "insert into intransactionspec values(%s, %s)", 123, "test" )
+            InTransaction { tx =>
+                intercept[RuntimeException] {
+                    tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                     usedConnection = tx.connection
-                    error( "not again?!" )
+                    sys.error( "oh no" )
                 }
             }
-            catch {
-                case e: RuntimeException => // expected
-            }
-            
             usedConnection.isClosed should be (true)
         }
 
