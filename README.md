@@ -21,54 +21,77 @@ Although I'm using this library in my own projects I have not tested it with mas
  * Any config files for database configuration
  * Any type of ORM voodoo (and will never be)
 
-Example
--------
+Examples
+--------
 
-    import net.noerd.prequel.InTransaction
-    import net.noerd.prequel.DatabaseConfig
-    import net.noerd.prequel.ResultSetRowImplicits._
-    import net.noerd.prequel.SQLFormatterImplicits._    
-    
-    case class Bicycle( id: Long, brand: String, releaseDate: DateTime)
+Given the following import and definitions
 
-    object PrequelTest {
-        // The database config should be created only once
-        // since it's used during connection pooling
-        implicit val databaseConfig = DatabaseConfig( 
-            driver = "org.hsqldb.jdbc.JDBCDriver",
-            jdbcURL = "jdbc:hsqldb:mem:mymemdb"
+```scala
+import net.noerd.prequel.InTransaction
+import net.noerd.prequel.DatabaseConfig
+import net.noerd.prequel.ResultSetRowImplicits
+import net.noerd.prequel.SQLFormatterImplicits
+
+case class Bicycle( id: Long, brand: String, releaseDate: DateTime )
+
+implicit val datebaseConfig = DatabaseConfig(
+    driver = "org.hsqldb.jdbc.JDBCDriver",
+    jdbcURL = "jdbc:hsqldb:mem:mymemdb"
+)
+```
+
+Prequel makes it quite comfortable for you to do:
+
+## Inserts
+
+```scala
+def insertBicycle( bike: Bicycle ): Unit = {
+    InTransaction { tx => 
+        tx.execute( 
+            "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )", 
+            bike.id, bike.brand, bike.releaseDate
         )
-       
-        def insertBicycle( bike: Bicycle ): Unit = {
-            InTransaction { tx => 
-                tx.execute( 
-                    "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )", 
-                    bike.id, bike.brand, bike.releaseDate
-                )
-            }
+    }
+}
+```
+## Batch Updates and Inserts
+
+```scala
+def insertBicycles( bikes: Seq[ Bicycle ] ): Unit = {
+    InTransaction { tx => 
+      tx.executeBatch( "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )" ) { statement => 
+        bikes.foreach { bike =>
+          statment.executeWith( bike.id, bike.brand, bike.releaseDate )
         }
-        
-        def fetchBicycles(): Seq[ Bicycles ] = {
-            InTransaction { tx => 
-                tx.select( "select id, brand, release_date from bicycles" ) { r =>
-                    Bicycle( r, r, r )
-                }
-            }
-        }
-        
-        def fetchBicycleCount: Long = {
-            InTransaction { tx => 
-                tx.selectLong( "select count(*) from bicycles")
-            }
+      }
+    }
+}
+```
+ 
+## Easily create objects from selects
+
+```scala
+def fetchBicycles(): Seq[ Bicycles ] = {
+    InTransaction { tx => 
+        tx.select( "select id, brand, release_date from bicycles" ) { r =>
+            Bicycle( r, r, r )
         }
     }
+}
+```
+
+## Select native types directly
+
+```scala
+def fetchBicycleCount: Long = {
+    InTransaction { tx => 
+        tx.selectLong( "select count(*) from bicycles")
+    }
+}
+```
     
 Dependencies
 ------------
-
-## Scala
-
-I'm developing against Scala 2.8.1 but there are not that many 2.8 features used so it should be rather easy to port to 2.7.7 if you still haven't made the leap. 
 
 ## 3rd Party libs
 
