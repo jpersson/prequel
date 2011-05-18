@@ -33,7 +33,7 @@ private class ReusableStatement( wrapped: PreparedStatement, formatter: SQLForma
     }
     
     /**
-     * Alias of execute made to look good with the <<
+     * Alias of execute() included to look good with the <<
      * @return the number of affected records
      */
     def <<!(): Int = execute()

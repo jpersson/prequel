@@ -11,7 +11,7 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
 /**
- * Currently a private object responsible for formatting SQL used in 
+ * Currently a private class responsible for formatting SQL used in 
  * transactions (@see Transaction). It does properly format standards 
  * classes like DateTime, Floats, Longs and Integers as well as some 
  * SQL specific classes like Nullable, NullComparable and Identifier. 
@@ -28,14 +28,23 @@ class SQLFormatter(
         sql.replace("?", "%s").format( params.map( p => p.escaped( this ) ): _* )
     }
     
+    /**
+     * Escapes  "'" and "\" in the string for use in a sql query
+     */
     def escapeString( str: String ): String = escapeSql( str ).replace( "\\", "\\\\" )
     
+    /**
+     * Quotes the passed string according to the formatter 
+     */
     def quoteString( str: String ): String = {
         val sb = new StringBuilder
         sb.append( sqlQuote ).append( str ).append( sqlQuote )
         sb.toString
     }
     
+    /**
+     * Escapes and quotes the given string
+     */
     def toSQLString( str: String ): String = quoteString( escapeString( str ) )
 }
 

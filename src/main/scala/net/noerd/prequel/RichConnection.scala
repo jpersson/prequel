@@ -3,8 +3,15 @@ package net.noerd.prequel
 import java.sql.Connection
 import java.sql.Statement
 
+/**
+ * Private class providing methods for using Statements and
+ * ReusableStatements. 
+ */
 private[prequel] class RichConnection( val wrapped: Connection ) {
-    
+    /**
+     * Creates a new statement executes the given block with it.
+     * The statement is automatically closed once the block has finished.
+     */
     def usingStatement[ T ]( block: (Statement) => T ): T = {
         val statement = wrapped.createStatement
         
@@ -17,6 +24,10 @@ private[prequel] class RichConnection( val wrapped: Connection ) {
         }       
     }
 
+    /**
+     * Prepares the sql query and executes the given block with it.
+     * The statement is automatically closed once the block has finished.
+     */
     def usingReusableStatement[ T ](
         sql: String,
         formatter: SQLFormatter
