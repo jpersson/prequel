@@ -33,8 +33,8 @@ Given the following import and definitions
 ```scala
 import net.noerd.prequel.InTransaction
 import net.noerd.prequel.DatabaseConfig
-import net.noerd.prequel.ResultSetRowImplicits
-import net.noerd.prequel.SQLFormatterImplicits
+import net.noerd.prequel.SQLFormatterImplicits._
+import net.noerd.prequel.ResultSetRowImplicits._
 
 case class Bicycle( id: Long, brand: String, releaseDate: DateTime )
 
