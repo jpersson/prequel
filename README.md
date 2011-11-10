@@ -31,14 +31,13 @@ Examples
 Given the following import and definitions
 
 ```scala
-import net.noerd.prequel.InTransaction
 import net.noerd.prequel.DatabaseConfig
 import net.noerd.prequel.SQLFormatterImplicits._
 import net.noerd.prequel.ResultSetRowImplicits._
 
 case class Bicycle( id: Long, brand: String, releaseDate: DateTime )
 
-implicit val datebaseConfig = DatabaseConfig(
+val database = DatabaseConfig(
     driver = "org.hsqldb.jdbc.JDBCDriver",
     jdbcURL = "jdbc:hsqldb:mem:mymemdb"
 )
@@ -50,7 +49,7 @@ Prequel makes it quite comfortable for you to do:
 
 ```scala
 def insertBicycle( bike: Bicycle ): Unit = {
-    InTransaction { tx => 
+    database.transaction { tx => 
         tx.execute( 
             "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )", 
             bike.id, bike.brand, bike.releaseDate
@@ -62,7 +61,7 @@ def insertBicycle( bike: Bicycle ): Unit = {
 
 ```scala
 def insertBicycles( bikes: Seq[ Bicycle ] ): Unit = {
-    InTransaction { tx => 
+    database.transaction { tx => 
       tx.executeBatch( "insert into bicycles( id, brand, release_date ) values( ?, ?, ? )" ) { statement => 
         bikes.foreach { bike =>
           statment.executeWith( bike.id, bike.brand, bike.releaseDate )
@@ -76,7 +75,7 @@ def insertBicycles( bikes: Seq[ Bicycle ] ): Unit = {
 
 ```scala
 def fetchBicycles(): Seq[ Bicycles ] = {
-    InTransaction { tx => 
+    database.transaction { tx => 
         tx.select( "select id, brand, release_date from bicycles" ) { r =>
             Bicycle( r, r, r )
         }
@@ -88,7 +87,7 @@ def fetchBicycles(): Seq[ Bicycles ] = {
 
 ```scala
 def fetchBicycleCount: Long = {
-    InTransaction { tx => 
+    database.transaction { tx => 
         tx.selectLong( "select count(*) from bicycles")
     }
 }
