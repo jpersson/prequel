@@ -115,3 +115,8 @@ Feedback
 --------
 
 If you have any questions or feedback just send me a message here or on [twitter](http://twitter.com/suraken) and if you want to contribute just send a pull request.
+
+License
+-------
+
+Prequel is licensed under the [wtfpl](http://sam.zoy.org/wtfpl/).
