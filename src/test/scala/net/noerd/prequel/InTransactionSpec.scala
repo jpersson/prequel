@@ -11,24 +11,24 @@ import net.noerd.prequel.ResultSetRowImplicits._
 
 class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
     
-    implicit val databaseConfig = TestDatabase.config
+    val database = TestDatabase.config
     
-    override def beforeEach() = InTransaction { tx =>
+    override def beforeEach() = database.transaction { tx =>
         tx.execute( "create table intransactionspec(id int, name varchar(265))" )
     }
     
-    override def afterEach() = InTransaction { tx =>
+    override def afterEach() = database.transaction { tx =>
         tx.execute( "drop table intransactionspec" )
     }
     
-    describe( "InTransaction" ) {
+    describe( "database.transaction" ) {
         
         it( "should commit after block has been executed" ) {
-            InTransaction { tx =>
+            database.transaction { tx =>
                 tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
             }
             
-            InTransaction { tx =>
+            database.transaction { tx =>
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (1)
@@ -36,12 +36,12 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
         }
 
         it( "should rollback if asked to do so" ) {
-            InTransaction { tx =>
+            database.transaction { tx =>
                 tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                 tx.rollback()
             }
             
-            InTransaction { tx =>
+            database.transaction { tx =>
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (0)
@@ -51,13 +51,13 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
         it( "should rollback if an exception is thrown" ) {
             
             intercept[RuntimeException] {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                     sys.error( "oh no" )
                 }
             }
             
-            InTransaction { tx =>    
+            database.transaction { tx =>    
                 val count = tx.selectLong( "select count(*) from intransactionspec" )
                 
                 count should be (0)
@@ -69,7 +69,7 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
             
             var usedConnection: Connection = null
             
-            InTransaction { tx =>                
+            database.transaction { tx =>                
                 tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                 usedConnection = tx.connection
             }
@@ -81,7 +81,7 @@ class InTransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach
             
             var usedConnection: Connection = null
             
-            InTransaction { tx =>
+            database.transaction { tx =>
                 intercept[RuntimeException] {
                     tx.execute( "insert into intransactionspec values(?, ?)", 123, "test" )
                     usedConnection = tx.connection

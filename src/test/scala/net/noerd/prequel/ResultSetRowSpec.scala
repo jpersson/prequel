@@ -16,12 +16,12 @@ import net.noerd.prequel.ResultSetRowImplicits._
 
 class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         
-    implicit val databaseConfig = TestDatabase.config
+    val database = TestDatabase.config
     
     describe( "ResultSetRow" ) {
         
         it( "should return the column names of the row" ) {
-            InTransaction { tx =>
+            database.transaction { tx =>
                 val expectedColumns = Seq( "id", "name" )
                 tx.execute( "create table resultsetrowspec(id int, name varchar(265))" )
                 tx.execute( "insert into resultsetrowspec values(?, ?)", 242, "test1" )                
@@ -32,7 +32,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         }
 
-        it( "should return a Boolean" ) { InTransaction { tx =>
+        it( "should return a Boolean" ) { database.transaction { tx =>
             val value1 = Some(false)
             val value2 = None
             tx.execute( "create table boolean_table(c1 boolean, c2 boolean)" )
@@ -43,7 +43,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
         
-        it( "should return a Long" ) { InTransaction { tx =>
+        it( "should return a Long" ) { database.transaction { tx =>
             val value1 = Some(12345L)
             val value2 = None
             tx.execute( "create table long_table(c1 bigint, c2 bigint)" )
@@ -54,7 +54,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
         
-        it( "should return an Int" ) { InTransaction { tx =>
+        it( "should return an Int" ) { database.transaction { tx =>
             val value1 = Some( 12345 )
             val value2 = None
             tx.execute( "create table int_table(c1 int, c2 int)" )
@@ -65,7 +65,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
         
-        it( "should return a String" ) { InTransaction { tx =>
+        it( "should return a String" ) { database.transaction { tx =>
             val value1 = Some( "test" )
             val value2 = None
             tx.execute( "create table string_table(c1 varchar(256), c2 varchar(16))" )
@@ -76,7 +76,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
 
-        it( "should return a Date" ) { InTransaction { tx =>
+        it( "should return a Date" ) { database.transaction { tx =>
             val value1 = Some( new Date )
             val value2 = None
             tx.execute( "create table date_table(c1 timestamp, c2 timestamp)" )
@@ -87,7 +87,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
 
-        it( "should return a Float" ) { InTransaction { tx =>
+        it( "should return a Float" ) { database.transaction { tx =>
             val value1 = Some(1.5f)
             val value2 = None
             tx.execute( "create table float_table(c1 real, c2 real)" )
@@ -98,7 +98,7 @@ class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach 
             }
         } }
         
-        it( "should return a Double" ) { InTransaction { tx =>
+        it( "should return a Double" ) { database.transaction { tx =>
             val value1 = Some(3274832748932743.45)
             val value2 = None
             tx.execute( "create table double_table(c1 real, c2 real)" )

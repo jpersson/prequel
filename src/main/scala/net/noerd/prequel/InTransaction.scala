@@ -16,7 +16,7 @@ object InTransaction {
      * @throws SQLException if the connection could not be committed, rollbacked
      *         or closed.
      */
-    def apply[T]( block: ( Transaction ) => T )( implicit config: DatabaseConfig ): T = {
+    def apply[T]( block: ( Transaction ) => T )( config: DatabaseConfig ): T = {
         val transaction = TransactionFactory.newTransaction( config )
         
         try {

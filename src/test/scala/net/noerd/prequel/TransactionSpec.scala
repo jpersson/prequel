@@ -13,16 +13,16 @@ import net.noerd.prequel.ResultSetRowImplicits._
 
 class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
     
-    implicit val databaseConfig = TestDatabase.config
+    val database = TestDatabase.config
     
-    override def beforeEach() = InTransaction { tx =>
+    override def beforeEach() = database.transaction { tx =>
         tx.execute( "create table transactionspec(id int, name varchar(265))" )
         tx.execute( "insert into transactionspec values(?, ?)", 242, "test1" )
         tx.execute( "insert into transactionspec values(?, ?)", 23, "test2" )
         tx.execute( "insert into transactionspec values(?, ?)", 42, "test3" )
     }
     
-    override def afterEach() = InTransaction { tx =>
+    override def afterEach() = database.transaction { tx =>
         tx.execute( "drop table transactionspec" )
     }    
 
@@ -31,7 +31,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         describe( "select" ) {
             
             it( "should return a Seq of the records converted by block" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val expected = Seq( "test1", "test2", "test3" )
                     val actual = tx.select("select name from transactionspec") { row =>
                         row.nextString.get
@@ -42,7 +42,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
             
             it( "should return an empty Seq if no records were found" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val actual = tx.select(
                         """select name from transactionspec 
                             where id > 1000
@@ -57,7 +57,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         describe( "selectHeadOption" ) {
             
             it( "should return the first record if one or more is returned by query" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val expected = Some( "test1" )
                     val actual = tx.selectHeadOption("select name from transactionspec") { row =>
                         row.nextString.get
@@ -68,7 +68,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
             
             it( "should return None if the query did not return any records" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val expected = None
                     val actual = tx.selectHeadOption(
                         """select name from transactionspec 
@@ -84,7 +84,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         describe( "selectHead" ) {
             
             it( "should return the first column of the first record" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val expected = 242L
                     val actual = tx.selectHead( "select id from transactionspec" )( row2Long )
                     
@@ -93,7 +93,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
             
             it( "should throw a NoSuchElementException if no record was returned" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     intercept[NoSuchElementException] {
                         tx.selectHead(
                             """select id from transactionspec 
@@ -108,7 +108,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
         describe( "selectLong" ) {
             
             it( "should return the first column of the first records as a Long" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val expected = 242L
                     val actual = tx.selectLong("select id from transactionspec")
                     
@@ -117,7 +117,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
             
             it( "should throw an SQLException if the value is not a Long" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     intercept[SQLException] {
                         tx.selectLong("select 'nan' from transactionspec")
                     }
@@ -125,7 +125,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             }
 
             it( "should throw a NoSuchElementException if no record was returned" ) {
-                InTransaction { tx =>
+                database.transaction { tx =>
                     intercept[NoSuchElementException] {
                          tx.selectLong( "select id from transactionspec where id > 1000" )
                     }
@@ -137,7 +137,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             it( "should return the number of inserted records" ) {
                 case class Item( v1: Long, v2: String )
                 val items = Seq( Item( 1, "test" ), Item( 1, "test" ) )
-                val count = InTransaction { tx =>
+                val count = database.transaction { tx =>
                     tx.executeBatch( "insert into transactionspec values(?, ?)" ) { statement =>
                         var counter = 0
                         items.foreach { item =>
@@ -153,7 +153,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
             it( "should return the number of updated records" ) {
                 val itemsToUpdate = Seq( 23, 42, 38, 232 )
                 val existingItems = Seq( 23, 42 )
-                val count = InTransaction { tx =>
+                val count = database.transaction { tx =>
                     tx.executeBatch( "update transactionspec set name='foo' where id=?" ) { statement =>
                         var counter = 0
                         itemsToUpdate.foreach { item => 
@@ -197,7 +197,7 @@ class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
                     tmp
                 }
                 
-                InTransaction { tx =>
+                database.transaction { tx =>
                     val sql = "insert into transactionspec values(?, ?)"
                     val normalTiming = normalExecute( sql, items, tx )
                     val batchTiming = executeBatch( sql, items, tx )

@@ -51,6 +51,20 @@ final case class DatabaseConfig(
     
     // Make sure that the class is available
     Class.forName( driver )
+
+    /**
+     * Execute the block in a transaction against the db defined by
+     * the configuration. 
+     *
+     * If the block is executed succesfully the transaction 
+     * will be committed but if an exception is throw it will be rolled back 
+     * immediately and rethrow the exception.
+     *
+     * @throws Any Exception that the block may generate.
+     * @throws SQLException if the connection could not be committed, rollbacked
+     *         or closed.
+     */
+    def transaction[T]( block: ( Transaction ) => T ) = InTransaction( block )( this )
 }
 
 /**

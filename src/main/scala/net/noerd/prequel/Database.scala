@@ -41,7 +41,9 @@ private [prequel] object ConnectionPools {
                 connectionFactory, connectionPool, stmtPoolFactory, validationQuery, 
                 defaultReadonly, defaultAutoCommit, config.isolationLevel.id
             )
-            val dataSource: PoolingDataSource = new PoolingDataSource( connectionPool )
+            val dataSource: PoolingDataSource = {
+                new PoolingDataSource( connectionPool )
+            }
             
             pools.synchronized {
                 pools += (( config, dataSource ))

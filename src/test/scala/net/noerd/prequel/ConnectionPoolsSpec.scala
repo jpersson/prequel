@@ -43,10 +43,10 @@ class ConnectionPoolsSpec extends Spec with ShouldMatchers with BeforeAndAfterEa
                 ConnectionPools.nbrOfPools should be (1)
 
                 ConnectionPools.getOrCreatePool( config1 )
-                ConnectionPools.nbrOfPools should be (1)                
+                ConnectionPools.nbrOfPools should be (1)
 
                 ConnectionPools.getOrCreatePool( config1Copy )
-                ConnectionPools.nbrOfPools should be (1)                
+                ConnectionPools.nbrOfPools should be (1)
             }
         }
     }

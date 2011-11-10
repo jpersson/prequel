@@ -9,30 +9,30 @@ import org.scalatest.BeforeAndAfterEach
 
 import net.noerd.prequel.SQLFormatterImplicits._
 
-trait ColumnTypeSpec[ T ] extends Spec with ShouldMatchers with BeforeAndAfterEach {
+trait ColumnTypeSpec[ T ] extends Spec with ShouldMatchers {
     
-    implicit val databaseConfig = TestDatabase.config
+    val database = TestDatabase.config
+    val testIdentifier = columnTypeFactory.getClass.getSimpleName.replace( "$", "" )
     
     def sqlType: String
     def testValue: Formattable
     def columnTypeFactory: ColumnTypeFactory[T]
-
-    override def beforeEach() = InTransaction { tx =>
-        tx.execute( 
-            "create table columntypespec(c1 ?, c2 ?)", 
-            Identifier( sqlType ), Identifier( sqlType ) 
-        )
-        tx.execute( "insert into columntypespec values(?, null)", testValue )
-    }
     
-    override def afterEach() = InTransaction { tx =>
-        tx.execute( "drop table columntypespec" )
-    }
-    
-    describe( columnTypeFactory.getClass.getSimpleName ) {
+    describe( testIdentifier ) {
         
-        it( "should handle both defined and undefined value" ) { InTransaction { tx =>
-            tx.select( "select c1, c2 from columntypespec" ) { row =>
+        it( "should handle both defined and undefined value" ) { database.transaction { tx =>
+
+            // Using the test identifier as table since tables in hsqldb are not
+            // transaction safe objects.
+            val table = testIdentifier
+
+            tx.execute( 
+                "create table ?(c1 ?, c2 ?)", 
+                Identifier( table ), Identifier( sqlType ), Identifier( sqlType )
+            )
+            tx.execute( "insert into ? values(?, null)", Identifier( table ), testValue )
+
+            tx.select( "select c1, c2 from ?", Identifier( table ) ) { row =>
                 columnTypeFactory(row ).nextValue should equal (testValue.value)
                 columnTypeFactory(row ).nextValueOption should be (None)
             }
