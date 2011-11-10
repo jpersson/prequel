@@ -4,7 +4,7 @@ version := "0.3.5"
 
 organization := "net.noerd"
 
-scalaVersion := "2.9.0"
+scalaVersion := "2.9.1"
 
 // Runtime Dependencies
 libraryDependencies ++= Seq(
@@ -16,6 +16,6 @@ libraryDependencies ++= Seq(
 
 // Test Dependencies
 libraryDependencies ++= Seq(
-    "org.hsqldb" % "hsqldb" % "2.0.0" % "test",
-    "org.scalatest" %% "scalatest" % "1.4.1" % "test"
+    "org.hsqldb" % "hsqldb" % "2.2.4" % "test",
+    "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 )
