@@ -18,7 +18,7 @@ import org.joda.time.DateTime
  * ## Set parameters and execute in on shot
  *     statement.executeWith( param1, param2, param3 )
  */
-private class ReusableStatement( wrapped: PreparedStatement, formatter: SQLFormatter ) {
+private class ReusableStatement( val wrapped: PreparedStatement, formatter: SQLFormatter ) {
     private val StartIndex = 1
     private var parameterIndex = StartIndex
             
