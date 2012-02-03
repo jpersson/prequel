@@ -64,12 +64,3 @@ private [prequel] object ConnectionPools {
     private[prequel] def reset(): Unit = pools.clear
 }
 
-private [prequel] object TransactionFactory {
-    
-    def newTransaction( config: DatabaseConfig ): Transaction = {
-        Transaction(
-            ConnectionPools.getOrCreatePool( config ).getConnection(),
-            config.sqlFormatter
-        )
-    }
-}
