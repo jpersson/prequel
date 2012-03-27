@@ -3,6 +3,8 @@ Prequel - SQL is enough
 
 There are a lot of database libraries out there. Most of them try to create a new abstraction on top of SQL. I think SQL is already a quite nice abstraction for working with data. Prequel aims to make working with this abstraction a bit more comfortable, nothing more.
 
+[![Build Status](https://secure.travis-ci.org/jpersson/prequel.png)](http://travis-ci.org/jpersson/prequel)
+
 ## Background
 
 Prequel is a small set of classes making handling of SQL queries in Scala a bit easier. It takes care of connection handling/pooling, sql escaping, parameter conversion and to some extent transaction handling.
