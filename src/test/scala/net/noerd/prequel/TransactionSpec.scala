@@ -4,14 +4,14 @@ import java.sql.SQLException
 
 import scala.collection.mutable.ArrayBuffer
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
 
 import net.noerd.prequel.SQLFormatterImplicits._
 import net.noerd.prequel.ResultSetRowImplicits._
 
-class TransactionSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
+class TransactionSpec extends FunSpec with ShouldMatchers with BeforeAndAfterEach {
     
     val database = TestDatabase.config
     

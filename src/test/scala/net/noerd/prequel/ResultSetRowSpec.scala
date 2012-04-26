@@ -3,7 +3,7 @@ package net.noerd.prequel
 import java.util.Date
 import java.sql.SQLException
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
 
@@ -14,7 +14,7 @@ import org.joda.time.format.DateTimeFormatter
 import net.noerd.prequel.SQLFormatterImplicits._
 import net.noerd.prequel.ResultSetRowImplicits._
 
-class ResultSetRowSpec extends Spec with ShouldMatchers with BeforeAndAfterEach {
+class ResultSetRowSpec extends FunSpec with ShouldMatchers with BeforeAndAfterEach {
         
     val database = TestDatabase.config
     
