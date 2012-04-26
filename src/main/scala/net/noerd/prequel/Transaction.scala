@@ -221,8 +221,8 @@ class Transaction( val connection: Connection, val formatter: SQLFormatter ) {
      * @throws SQLException if the query is missing parameters when executed
      *         or if they are of the wrong type.
      */
-    def executeBatch[ T ]( sql: String )( block: (ReusableStatement) => T ): T = {
-        connection.usingReusableStatement( sql, formatter )( block )
+    def executeBatch[ T ]( sql: String, generateKeys: Boolean = false )( block: (ReusableStatement) => T ): T = {
+        connection.usingReusableStatement( sql, formatter, generateKeys )( block )
     }
     
     /**

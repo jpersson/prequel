@@ -3,6 +3,9 @@ package net.noerd.prequel
 import java.sql.Connection
 import java.sql.Statement
 
+import java.sql.Statement.RETURN_GENERATED_KEYS
+import java.sql.Statement.NO_GENERATED_KEYS
+
 /**
  * Private class providing methods for using Statements and
  * ReusableStatements. 
@@ -30,10 +33,17 @@ private[prequel] class RichConnection( val wrapped: Connection ) {
      */
     def usingReusableStatement[ T ](
         sql: String,
-        formatter: SQLFormatter
+        formatter: SQLFormatter,
+        generateKeys: Boolean = false
     )
     ( block: (ReusableStatement) => T ): T = {
-        val statement = new ReusableStatement( wrapped.prepareStatement( sql ), formatter )
+        val keysOption = (
+            if( generateKeys ) RETURN_GENERATED_KEYS 
+            else NO_GENERATED_KEYS
+        )
+        val statement = new ReusableStatement( 
+            wrapped.prepareStatement( sql, keysOption ), formatter 
+        )
 
         try {
             block( statement )

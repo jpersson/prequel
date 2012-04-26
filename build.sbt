@@ -1,6 +1,6 @@
 name := "prequel"
 
-version := "0.3.6"
+version := "0.3.7"
 
 organization := "net.noerd"
 
