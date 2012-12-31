@@ -5,6 +5,7 @@ import org.joda.time.Duration
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.BeforeAndAfterEach
+import java.util.Locale
 
 class FormattablesSpec extends FunSpec with ShouldMatchers {
 
@@ -58,6 +59,26 @@ class FormattablesSpec extends FunSpec with ShouldMatchers {
             it( description ) {
                 formattable.escaped( formatter ) should equal ( expected )
             }            
+        }
+    }
+
+    describe( "FloatFormattable" ) {
+        it( "should escape 1.5 correctly even with non-US locales" ) {
+            val oldDefaultLocale = Locale.getDefault
+
+            Locale.setDefault(Locale.GERMANY)
+            FloatFormattable(1.500000f).escaped( formatter ) should equal ( "1.500000" )
+            Locale.setDefault(oldDefaultLocale)
+        }
+    }
+
+    describe( "DoubleFormattable" ) {
+        it( "should escape 1.5 correctly even with non-US locales" ) {
+            val oldDefaultLocale = Locale.getDefault
+
+            Locale.setDefault(Locale.GERMANY)
+            DoubleFormattable(1.500000f).escaped( formatter ) should equal ( "1.500000" )
+            Locale.setDefault(oldDefaultLocale)
         }
     }
 }
