@@ -6,6 +6,10 @@ organization := "net.noerd"
 
 scalaVersion := "2.9.2"
 
+publishTo := Some( "Sonatype Staging Nexus" at "https://oss.sonatype.org/service/local/staging/deploy/maven2" )
+
+credentials += Credentials( Path.userHome / ".ivy2" / ".credentials" )
+
 // Runtime Dependencies
 libraryDependencies ++= Seq(
     "commons-pool" % "commons-pool" % "1.5.5",

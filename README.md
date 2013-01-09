@@ -94,6 +94,17 @@ def fetchBicycleCount: Long = {
     }
 }
 ```
+
+Use in your Project
+-------------------
+
+Releases of Prequel are published to [oss.sonatype.org](https://oss.sonatype.org/content/groups/public). If you want to use it in your project just add it as a dependency or download the jar file directly.
+
+### SBT
+
+```
+"net.noerd" %% "prequel" % "0.3.8"
+```
     
 Dependencies
 ------------
