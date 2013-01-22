@@ -91,3 +91,15 @@ class DurationColumnType( row: ResultSetRow ) extends ColumnType[ Duration ] {
 object DurationColumnType extends ColumnTypeFactory[ Duration ] {
     def apply( row: ResultSetRow ) = new DurationColumnType( row )
 }
+
+
+//
+// Binary
+//
+
+class BinaryColumnType( row: ResultSetRow ) extends ColumnType[ Array[Byte] ] {
+    override def nextValueOption: Option[ Array[Byte] ] = row.nextBinary
+}
+object BinaryColumnType extends ColumnTypeFactory[ Array[Byte] ] {
+    def apply( row: ResultSetRow ) = new BinaryColumnType( row )
+}
