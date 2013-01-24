@@ -18,7 +18,8 @@ import org.joda.time.format.ISODateTimeFormat
  * See their documentation for more info on how to use them.
  */
 class SQLFormatter(
-    val timeStampFormatter: DateTimeFormatter
+    val timeStampFormatter: DateTimeFormatter,
+    val binaryFormatter: BinaryFormatter
 ) {
     private val sqlQuote = "'"
     
@@ -61,10 +62,18 @@ object SQLFormatter {
     )
         
     private[ prequel ] def apply( 
-        timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis 
+        timeStampFormatter: DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis,
+        binaryFormatter: BinaryFormatter = new BinaryFormatter()
     ) = {
-        new SQLFormatter( timeStampFormatter )
+        new SQLFormatter( timeStampFormatter, binaryFormatter )
     }
+}
+
+class BinaryFormatter {
+    /**
+     * Print to hexadecimal format
+     */
+    def print( value: Array[Byte] ): String = value.map("%02X" format _).mkString
 }
 
 object SQLFormatterImplicits {
@@ -77,4 +86,5 @@ object SQLFormatterImplicits {
     implicit def dateTime2Formattable( wrapped: DateTime ) = DateTimeFormattable( wrapped )
     implicit def date2Formattable( wrapped: Date ) = DateTimeFormattable( wrapped )
     implicit def duration2Formattable( wrapped: Duration ) = new DurationFormattable( wrapped )
+    implicit def binary2Formattable( wrapped: Array[Byte] ) = new BinaryFormattable( wrapped )
 }

@@ -50,6 +50,10 @@ class FormattablesSpec extends FunSpec with ShouldMatchers {
         ),
         ( "Identifier should leave string as they are", 
             Identifier( "this.is.a.stri'ng" ), "this.is.a.stri'ng"
+        ),
+        ( "BinaryFormattable should escape and convert defined formattable to hexadecimal format",
+            BinaryFormattable( "Lorem Ipsum".getBytes ),
+            "'4C6F72656D20497073756D'"
         )
     )
 
