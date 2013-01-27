@@ -21,7 +21,7 @@ private [prequel] object ConnectionPools {
     
     def nbrOfPools = pools.size
     
-    def getOrCreatePool( config: DatabaseConfig ): PoolingDataSource = {
+    def getOrCreatePool( config: DatabaseConfig ): PoolingDataSource = pools.synchronized {
         pools.get( config ).getOrElse { 
             val connectionPool = new GenericObjectPool( 
                 null, config.poolConfig.toGenericObjectPoolConfig 
@@ -45,10 +45,8 @@ private [prequel] object ConnectionPools {
                 new PoolingDataSource( connectionPool )
             }
             
-            pools.synchronized {
-                pools += (( config, dataSource ))
-            }
-            
+
+            pools += (( config, dataSource ))
             dataSource
         }
     }
