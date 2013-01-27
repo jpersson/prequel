@@ -70,6 +70,12 @@ private class ReusableStatement( val wrapped: PreparedStatement, formatter: SQLF
     def addDateTime( value: DateTime ): Unit = addValue( () => 
         wrapped.setTimestamp( parameterIndex, new Timestamp( value.getMillis ) ) 
     )
+
+    /**
+     * Add Binary (array of bytes) to the current parameter index
+     */
+    def addBinary( value: Array[Byte] ): Unit = addValue( () => wrapped.setBytes( parameterIndex, value ) )
+
     /**
      * Add a Boolean to the current parameter index
      */    

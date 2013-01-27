@@ -88,3 +88,9 @@ class FloatColumnTypeSpec extends ColumnTypeSpec[ Float ] {
     val testValue = FloatFormattable( 2.42f )
     def columnTypeFactory = FloatColumnType
 }
+
+class BinaryColumnTypeSpec extends ColumnTypeSpec[ Array[Byte] ] {
+    def sqlType = "varbinary(255)"
+    val testValue = BinaryFormattable("test binary content".getBytes)
+    def columnTypeFactory = BinaryColumnType
+}
