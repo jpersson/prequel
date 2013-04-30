@@ -59,55 +59,55 @@ private class ReusableStatement( val wrapped: PreparedStatement, formatter: SQLF
     /**
      * Add a String to the current parameter index
      */    
-    def addString( value: String ) = addValue( () => 
-        wrapped.setString( parameterIndex, formatter.escapeString( value ) ) 
+    def addString( value: String ) =
+        addValue(wrapped.setString( parameterIndex, formatter.escapeString( value ) ) 
     )
     
     /**
      * Add a Date to the current parameter index. This is done by setTimestamp which
      * looses the Timezone information of the DateTime
      */
-    def addDateTime( value: DateTime ): Unit = addValue( () => 
-        wrapped.setTimestamp( parameterIndex, new Timestamp( value.getMillis ) ) 
+    def addDateTime( value: DateTime ): Unit =
+        addValue( wrapped.setTimestamp( parameterIndex, new Timestamp( value.getMillis ) ) 
     )
 
     /**
      * Add Binary (array of bytes) to the current parameter index
      */
-    def addBinary( value: Array[Byte] ): Unit = addValue( () => wrapped.setBytes( parameterIndex, value ) )
+    def addBinary( value: Array[Byte] ): Unit = addValue( wrapped.setBytes( parameterIndex, value ) )
 
     /**
      * Add a Boolean to the current parameter index
      */    
-    def addBoolean( value: Boolean ): Unit = addValue( () => wrapped.setBoolean( parameterIndex, value ) )
+    def addBoolean( value: Boolean ): Unit = addValue( wrapped.setBoolean( parameterIndex, value ) )
 
     /**
      * Add a Long to the current parameter index
      */    
-    def addLong( value: Long ): Unit = addValue( () => wrapped.setLong( parameterIndex, value ) )    
+    def addLong( value: Long ): Unit = addValue( wrapped.setLong( parameterIndex, value ) )    
 
     /**
      * Add a Int to the current parameter index
      */    
-    def addInt( value: Int ): Unit = addValue( () => wrapped.setInt( parameterIndex, value ) )
+    def addInt( value: Int ): Unit = addValue( wrapped.setInt( parameterIndex, value ) )
 
     /**
      * Add a Float to the current parameter index
      */    
-    def addFloat( value: Float ): Unit = addValue( () => wrapped.setFloat( parameterIndex, value ) )
+    def addFloat( value: Float ): Unit = addValue( wrapped.setFloat( parameterIndex, value ) )
 
     /**
      * Add a Double to the current parameter index
      */    
-    def addDouble( value: Double ): Unit = addValue( () => wrapped.setDouble( parameterIndex, value ) )    
+    def addDouble( value: Double ): Unit = addValue( wrapped.setDouble( parameterIndex, value ) )    
 
     /**
      * Add Null to the current parameter index
      */    
-    def addNull(): Unit = addValue( () => wrapped.setNull( parameterIndex, Types.NULL ) )
+    def addNull(): Unit = addValue( wrapped.setNull( parameterIndex, Types.NULL ) )
     
-    private def addValue( f: () => Unit ) = {
-        f.apply
+    private def addValue( f: => Unit ) = {
+        f
         parameterIndex = parameterIndex + 1
     }
 
