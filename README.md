@@ -103,7 +103,7 @@ Releases of Prequel are published to [oss.sonatype.org](https://oss.sonatype.org
 ### SBT
 
 ```
-"net.noerd" %% "prequel" % "0.3.8"
+"net.noerd" %% "prequel" % "0.3.9"
 ```
     
 Dependencies
