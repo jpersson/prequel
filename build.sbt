@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
+parallelExecution in Test := false
+
 // Release publishing stuff
 
 publishTo := Some( "Sonatype Staging Nexus" at "https://oss.sonatype.org/service/local/staging/deploy/maven2" )
