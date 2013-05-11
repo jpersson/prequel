@@ -19,7 +19,9 @@ private [prequel] object ConnectionPools {
     private val UserProperty = "user"
     private val PasswordProperty = "password"    
     
-    def nbrOfPools = pools.size
+    def nbrOfPools = pools.synchronized {
+        pools.size
+    }
     
     def getOrCreatePool( config: DatabaseConfig ): PoolingDataSource = pools.synchronized {
         pools.get( config ).getOrElse { 
@@ -59,6 +61,8 @@ private [prequel] object ConnectionPools {
     }
     
     // Used during testing
-    private[prequel] def reset(): Unit = pools.clear
+    private[prequel] def reset(): Unit = pools.synchronized {
+        pools.clear
+    }
 }
 
